@@ -40,7 +40,7 @@
 		<key>AppLinkURLScheme</key>
 		<string>mwdat-YOUR_META_APP_ID</string>
 		<key>ClientToken</key>
-		<string>YOUR_META_CLIENT_TOKEN</string>
+		<string>AR|YOUR_META_APP_ID|YOUR_CLIENT_TOKEN_HASH</string>
 		<key>MetaAppID</key>
 		<string>YOUR_META_APP_ID</string>
 		<key>TeamID</key>
