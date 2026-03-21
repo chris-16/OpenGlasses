@@ -1,249 +1,350 @@
 # OpenGlasses
 
-Voice-powered AI assistant for Ray-Ban Meta smart glasses using Claude AI and on-device wake word detection.
+An open-source voice-powered AI assistant for Ray-Ban Meta smart glasses. 50+ built-in tools, multi-LLM support (cloud + on-device), personas with simultaneous wake words, live translation, MCP tool servers, and more — all controlled hands-free by voice.
 
-## Overview
+> **Note**: The Meta Wearables SDK is currently in **developer preview**. App Store distribution is not yet supported — each user must build the app from source with their own Meta developer credentials.
 
-OpenGlasses transforms your Ray-Ban Meta smart glasses into a hands-free AI assistant. Say "Hey Claude" to activate voice recognition, ask questions, and receive responses directly through your glasses' speakers. Built with SwiftUI and leveraging Meta's Wearables SDK, this app provides a seamless AR-enhanced experience.
+---
+
+## Quick Start
+
+1. Build and install on your iPhone (see [Building from Source](#building-from-source))
+2. Add an AI model in **Settings → AI Models** (Anthropic, OpenAI, Gemini, or a local model)
+3. Pair your Ray-Ban Meta glasses via the Meta AI app
+4. Say **"Hey OpenGlasses"** and ask anything
+
+---
 
 ## Features
 
-### Core Capabilities
-- **Wake Word Detection**: On-device "Hey Claude" activation using custom wake word model
-- **Voice Transcription**: Speech-to-text powered by Apple's Speech framework
-- **Multi-Provider LLM Support**: Switch between Anthropic Claude, OpenAI GPT, Google Gemini, Groq, and custom OpenAI-compatible APIs
-- **Location Context**: GPS-based location automatically included in prompts for locally relevant answers
-- **Audio Playback**: Natural-sounding responses via text-to-speech through glasses speakers
-- **Camera Integration**: Voice-activated photo capture ("take a picture")
-- **Background Operation**: Wake word detection continues while app is backgrounded
+### Personas — Multiple AI Personalities
 
-### Voice Commands
-- **"Hey Claude"** - Activate the assistant
-- **"Stop" / "Cancel"** - Interrupt playback, continue conversation
-- **"Goodbye" / "Thanks Claude"** - End conversation, return to wake word mode
-- **"Take a picture"** - Capture photo from glasses camera
+Each persona has its own wake word, AI model, and personality. All listen simultaneously.
 
-### Smart Conversation Flow
-- Automatic conversation continuation after responses
-- Silence timeout detection to end natural conversations
-- Background audio session management for uninterrupted operation
+| Say | What Happens |
+|-----|-------------|
+| "Hey Claude" | Routes to Claude Sonnet with your professional prompt |
+| "Hey Jarvis" | Routes to a local on-device model with a concise style |
+| "Hey Computer" | Routes to GPT-4o with a technical personality |
+
+**Configure:** Settings → Personas → Add. Pick a wake word, assign a model and prompt preset.
+
+### On-Device Local LLM
+
+Run AI models entirely on your iPhone — no internet, no cloud, no API keys.
+
+1. Settings → AI Models → Add Model → pick **"Local (On-Device)"**
+2. **Download & Manage Models** → download from HuggingFace
+3. Select your downloaded model and tap **Add**
+
+**Recommended models:**
+
+| Model | Size | Best For |
+|-------|------|----------|
+| Qwen 2.5 3B | 1.8 GB | Conversation + tool calling |
+| Gemma 2 2B | 1.5 GB | General purpose |
+| SmolVLM2 2.2B | 1.5 GB | Vision (can see photos) |
+| Qwen 2.5 0.5B | 0.4 GB | Ultra-light, basic |
+
+Models are stored persistently and work fully offline after download. Toggle **Offline Mode** in Settings → Tools to disable internet-dependent tools.
+
+### 50+ Native Tools
+
+All voice-activated. Say what you need naturally — the AI picks the right tool.
+
+| Category | Tools |
+|----------|-------|
+| **Information** | Web Search (Perplexity + DuckDuckGo), News, Weather, Date/Time, Dictionary, Currency |
+| **Productivity** | Calendar, Reminders, Alarms, Timers, Pomodoro, Notes, Contextual Notes (GPS+time tagged), Clipboard |
+| **Communication** | Phone Calls, iMessage, WhatsApp, Telegram, Email, Contact Lookup |
+| **Navigation** | Directions (Apple/Google Maps), Nearby Places, Save Locations, Geofencing Alerts |
+| **Media** | Music Control (play/pause/skip + search by song/artist), Shazam Song ID, Open Apps |
+| **Smart Home** | HomeKit (lights, switches, fans, thermostats, locks, scenes), Home Assistant (REST API), Siri Shortcuts |
+| **Vision** | QR/Barcode Scanner, Face Recognition |
+| **Memory** | Object Memory ("where are my keys?"), Social Context (per-person facts), User Memory, Voice-Taught Skills |
+| **AI Features** | Live Translation, Memory Rewind (ambient audio recall), Ambient Captions, Meeting Summaries, Conversation Summaries |
+| **Fitness** | Workout Tracking, Exercise Logging, HealthKit, Pose Analysis, Step Goals |
+| **Device** | Flashlight, Brightness, Device Info, Step Count |
+| **Safety** | Emergency Info (local numbers + GPS), Daily Briefing, Navigation Assistance (accessibility preset) |
+| **Integration** | OpenClaw Gateway (50+ skills), MCP Servers (universal tool protocol), Custom Tools |
+
+### Voice-Taught Skills
+
+Teach the AI new behaviors at runtime — no code needed.
+
+| Say | What Happens |
+|-----|-------------|
+| "Learn that when I say expense this, create a note tagged EXPENSE" | Skill saved, auto-applies forever |
+| "Learn that when I say goodnight, turn off all lights" | Triggers HomeKit/HA on the phrase |
+| "List skills" | Shows all taught skills |
+| "Forget expense this" | Removes the skill |
+
+### Object Memory
+
+Remember where you put things. Uses GPS to calculate distance.
+
+| Say | What Happens |
+|-----|-------------|
+| "Remember my car is in lot B level 3" | Saves with GPS + timestamp |
+| "Where are my keys?" | "Your keys were on the kitchen counter, 2 hours ago. That's very close to where you are now." |
+| "Where did I park?" | Retrieves car location with distance |
+
+### Live Translation
+
+Continuous real-time translation of spoken foreign language.
+
+| Say | What Happens |
+|-----|-------------|
+| "Start translating Spanish to English" | Begins continuous translation |
+| "Stop translating" | Ends session, reports count |
+| "Switch to Japanese to English" | Changes languages on the fly |
+
+Supports 25+ languages including Spanish, French, German, Japanese, Chinese, Korean, Arabic, and more.
+
+### Social Context
+
+Build dossiers about people you meet.
+
+| Say | What Happens |
+|-----|-------------|
+| "Remember Sarah works at Google and likes hiking" | Fact saved |
+| "What do I know about Sarah?" | "About Sarah: works at Google, likes hiking. First noted 3 days ago." |
+
+Works alongside face recognition — when the AI recognizes someone, it can recall your notes about them.
+
+### Barge-In
+
+Interrupt the AI mid-sentence by saying any wake word. It stops immediately and starts listening to your new question.
+
+### Prompt Presets
+
+Switch AI personality without reconfiguring. Built-in presets:
+
+| Preset | Style |
+|--------|-------|
+| **Default** | Balanced, 2-4 sentences, conversational |
+| **Concise** | 1-2 sentences max, no filler |
+| **Technical** | Precise, jargon-appropriate, data-dense |
+| **Creative** | Playful, witty, expressive |
+| **Navigation Aid** | Spatial awareness, obstacle detection, sign reading |
+
+Create your own in Settings → System Prompt.
+
+### Custom Tools
+
+Define new tools without writing code. Map to Siri Shortcuts or URL schemes.
+
+Settings → Transparency → Custom Tools → Add:
+- **Shortcut tool**: triggers a Siri Shortcut by name
+- **URL tool**: opens a URL with parameter substitution
+
+Example: a "log_water" tool that runs your "Log Water" shortcut when the AI decides you need it.
+
+### MCP Servers (Model Context Protocol)
+
+Connect to any MCP-compatible tool server directly from your phone.
+
+Settings → Transparency → MCP Servers → Add:
+- Enter server URL + auth headers
+- Tap "Discover Tools" — all tools auto-appear
+- The AI can call them alongside native tools
+
+Popular MCP servers: Home Assistant, Notion, GitHub, Slack, Todoist, and hundreds more.
+
+### Home Assistant Integration
+
+Direct REST API control of your HA instance — works alongside or instead of HomeKit.
+
+Settings → Services → Home Assistant:
+- **HA URL**: e.g. `http://192.168.1.100:8123`
+- **Token**: Long-Lived Access Token (HA → Profile → Security)
+
+Voice commands: "Turn on the living room lights", "Set thermostat to 72", "Run the goodnight automation", "List all sensors"
+
+### Transparency & Privacy
+
+See exactly what data the AI receives and what network calls are made.
+
+| Setting | What It Shows |
+|---------|--------------|
+| **Tools** | All 50+ tools with enable/disable toggles |
+| **Prompt Inspector** | Full system prompt, injected context, token estimate |
+| **Network Activity** | All HTTP requests categorized by Meta/AI/App/Other |
+| **Offline Mode** | One toggle disables all internet-requiring tools |
+
+### Camera & Streaming
+
+- **Voice-Activated Photo Capture** — "take a picture" or "what's this?"
+- **QR/Barcode Scanner** — "scan this code" (Vision framework, works offline)
+- **Live Camera Preview** — real-time view of glasses POV
+- **Video Recording** — MP4 with configurable bitrate
+- **RTMP Broadcasting** — live stream to YouTube, Twitch, Kick
+- **WebRTC Browser Streaming** — shareable URL for peer-to-peer viewing
+- **Privacy Filter** — auto-blurs bystander faces
+
+### Text-to-Speech
+
+24 ElevenLabs voices (10 female, 14 male) with iOS fallback:
+- **Female**: Rachel, Sarah, Matilda, Emily, Charlotte, Alice, Lily, Dorothy, Serena, Nicole
+- **Male**: Brian, Adam, Daniel, George, Chris, Charlie, James, Dave, Drew, Callum, Bill, Fin, Liam, Thomas
+
+**Emotion-Aware TTS** adjusts tone automatically — warmer for good news, calmer for instructions, concerned for warnings.
+
+### Realtime Modes
+
+| Mode | How It Works |
+|------|-------------|
+| **Voice Mode** | Wake word → transcription → any LLM → TTS (most flexible) |
+| **Gemini Live** | Real-time audio/video streaming with Google Gemini |
+| **OpenAI Realtime** | Real-time audio/video streaming with OpenAI |
+
+---
 
 ## Requirements
 
-- iOS 26.0+ (iOS 18.0+ technically, configured for 26)
-- Xcode 16.0+
-- Ray-Ban Meta smart glasses (paired via Meta View app)
-- Anthropic API key ([get one here](https://console.anthropic.com/))
-- Meta Developer account for Wearables SDK access
+- **iOS 17+** (built targeting iOS 26)
+- **Xcode 15+**
+- **Physical iPhone** (Bluetooth, camera, microphone required)
+- **Ray-Ban Meta smart glasses** (paired via Meta AI app)
+- At least one LLM: API key (Anthropic, OpenAI, Gemini, etc.) OR a downloaded local model
 
-## Installation
+---
 
-### 1. Clone the Repository
+## Building from Source
+
+### 1. Clone
 
 ```bash
 git clone https://github.com/straff2002/OpenGlasses.git
 cd OpenGlasses
 ```
 
-### 2. Configure API Keys
+### 2. Meta Developer Credentials
 
-Edit `OpenGlasses/Sources/Utils/Config.swift`:
+1. Go to [wearables.developer.meta.com](https://wearables.developer.meta.com/)
+2. Create an account, organization, and app
+3. Note your **Meta App ID** and **Client Token**
+4. In Meta dashboard → iOS settings, enter your Apple Team ID, Bundle ID, and Universal Link URL
 
-```swift
-struct Config {
-    static let anthropicAPIKey = "YOUR_ANTHROPIC_API_KEY_HERE"
+### 3. Configure Info.plist
+
+Update `OpenGlasses/Info.plist`:
+
+```xml
+<key>MWDAT</key>
+<dict>
+    <key>AppLinkURLScheme</key>
+    <string>https://YOUR-DOMAIN/YOUR-PATH</string>
+    <key>MetaAppID</key>
+    <string>YOUR_META_APP_ID</string>
+    <key>ClientToken</key>
+    <string>AR|YOUR_META_APP_ID|YOUR_CLIENT_TOKEN_HASH</string>
+    <key>TeamID</key>
+    <string>$(DEVELOPMENT_TEAM)</string>
+</dict>
+```
+
+### 4. Universal Links
+
+Host an `apple-app-site-association` file at `https://YOUR-DOMAIN/.well-known/apple-app-site-association`:
+
+```json
+{
+  "applinks": {
+    "details": [{
+      "appID": "YOUR_TEAM_ID.YOUR_BUNDLE_ID",
+      "paths": ["/YOUR-PATH/*"]
+    }]
+  }
 }
 ```
 
-### 3. Set Up Meta Wearables SDK
+### 5. Enable Developer Mode
 
-Use your own Meta app credentials and keep all identifiers aligned.
+On iPhone: Meta AI app → Settings → About → tap version number **5 times** → toggle Developer Mode on.
 
-#### Meta Setup Values (copy/paste template)
-
-Replace the placeholders below with your own values:
-
-```text
-TEAM_ID=<YOUR_APPLE_TEAM_ID>
-BUNDLE_ID=<YOUR_UNIQUE_BUNDLE_ID>
-META_APP_ID=<YOUR_META_APP_ID>
-CLIENT_TOKEN=<YOUR_META_CLIENT_TOKEN>
-UNIVERSAL_LINK=https://<YOUR_DOMAIN>/<YOUR_PATH>
-
-URL_SCHEME=mwdat-${META_APP_ID}
-AASA_APP_ID=${TEAM_ID}.${BUNDLE_ID}
-```
-
-#### Where each value goes
-
-1. **Meta dashboard (iOS app details)**
-  - Team ID → `TEAM_ID`
-  - Bundle ID → `BUNDLE_ID`
-  - Universal Link → `UNIVERSAL_LINK`
-
-2. **`project.yml`**
-  - `settings.base.PRODUCT_BUNDLE_IDENTIFIER` → `BUNDLE_ID`
-  - `info.properties.MWDAT.MetaAppID` → `META_APP_ID`
-  - `info.properties.MWDAT.ClientToken` → `CLIENT_TOKEN`
-  - `info.properties.MWDAT.TeamID` → `$(DEVELOPMENT_TEAM)` (or `TEAM_ID`)
-  - `info.properties.MWDAT.AppLinkURLScheme` → `URL_SCHEME`
-  - `info.properties.CFBundleURLTypes[].CFBundleURLSchemes[]` → `URL_SCHEME`
-
-3. **Xcode Signing**
-  - Target → Signing & Capabilities → Team = `TEAM_ID`
-  - Bundle Identifier = `BUNDLE_ID` (Debug + Release)
-
-4. **Universal Links (`.well-known/apple-app-site-association`)**
-  - `applinks.details[].appID` → `AASA_APP_ID`
-
-5. **`OpenGlasses/Info.plist` (generated/final check)**
-  - `MWDAT.MetaAppID` = `META_APP_ID`
-  - `MWDAT.ClientToken` = `CLIENT_TOKEN`
-  - `MWDAT.TeamID` = `TEAM_ID` (or resolves from `$(DEVELOPMENT_TEAM)`)
-  - `MWDAT.AppLinkURLScheme` = `URL_SCHEME`
-  - `CFBundleURLSchemes` contains `URL_SCHEME`
-
-#### Notes
-- Bundle IDs must be globally unique in Apple Developer (for example, add a suffix like `.skunk0`).
-- If Meta Wearables is running in Developer Mode for local testing, Meta may not require full app-review configuration.
-- If auth loops at registration state 1→2, one or more values above are usually misaligned.
-
-### 4. Build and Run
+### 6. Build & Run
 
 ```bash
-# Open in Xcode
 open OpenGlasses.xcodeproj
-
-# Or use Swift Package Manager
-swift build
 ```
 
-**Note**: First launch will trigger Meta AI app for glasses pairing authorization.
+Select your iPhone, set your Team in Signing, and run (⌘R).
 
-## Project Structure
+---
 
-```
-OpenGlasses/
-├── Sources/
-│   ├── App/
-│   │   ├── OpenGlassesApp.swift    # Main app entry & state management
-│   │   └── ContentView.swift        # SwiftUI interface
-│   ├── Services/
-│   │   ├── ClaudeAPIService.swift   # Anthropic API integration
-│   │   ├── GlassesConnectionService.swift  # Meta SDK connection
-│   │   ├── WakeWordService.swift    # Wake word detection
-│   │   ├── TranscriptionService.swift  # Apple Speech integration
-│   │   ├── TextToSpeechService.swift   # Audio playback
-│   │   └── CameraService.swift      # Photo capture
-│   ├── Utils/
-│   │   └── Config.swift             # API keys & configuration
-│   └── Resources/
-│       └── (audio assets)
-├── Package.swift                     # Swift Package Manager config
-├── project.yml                       # XcodeGen project definition
-└── README.md
-```
+## Configuration
 
-## Architecture
+All settings are in-app — no source code editing needed.
 
-### Audio Pipeline
-1. **Wake Word Detection**: Continuous background monitoring using on-device ML
-2. **Speech Recognition**: Apple Speech framework transcribes audio
-3. **API Communication**: Transcribed text sent to Claude API
-4. **Response Synthesis**: Text-to-speech converts Claude's response
-5. **Audio Routing**: Playback through glasses speakers via Bluetooth
+### API Keys (Settings → AI Models)
 
-### State Management
-- `AppState` manages conversation flow and service coordination
-- Services communicate via closures/callbacks to maintain loose coupling
-- Shared audio engine between wake word and transcription for efficiency
+| Service | Purpose | Where to Get |
+|---------|---------|--------------|
+| Anthropic | Claude LLM | [console.anthropic.com](https://console.anthropic.com/) |
+| OpenAI | GPT + Realtime | [platform.openai.com](https://platform.openai.com/) |
+| Google Gemini | Gemini Live | [aistudio.google.com](https://aistudio.google.com/) |
+| Groq | Fast inference | [console.groq.com](https://console.groq.com/) |
+| ElevenLabs | Natural TTS | [elevenlabs.io](https://elevenlabs.io/) |
+| Perplexity | Web search | [perplexity.ai/settings/api](https://perplexity.ai/settings/api) |
 
-### Background Operation
-- Audio session configured for background playback
-- Wake word listener persists when app is backgrounded
-- Automatic recovery when returning to foreground
+### Services (Settings → Services & Integrations)
+
+| Service | Settings |
+|---------|----------|
+| **ElevenLabs** | API key + voice selection (24 voices) |
+| **Perplexity** | API key (DuckDuckGo fallback if not set) |
+| **Live Streaming** | Platform + RTMP URL + stream key |
+| **OpenClaw** | Enable + connection mode + host/port + token |
+| **Home Assistant** | URL + Long-Lived Access Token |
+
+---
+
+## Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| Wake word not detecting | Tap mic button to restart; check Bluetooth audio routing |
+| No audio through glasses | Verify Bluetooth connection in iOS Settings |
+| Glasses not connecting | Tap "Connect to Glasses"; enable Developer Mode in Meta AI app |
+| HomeKit not finding devices | HomeKit initializes on first tool call — say "list smart home devices" and wait 10s |
+| Local model crashes | Use a smaller model (0.5B or 2B); the 3B model may OOM on 6GB devices |
+| Model download stuck | Keep app in foreground; downloads continue if briefly backgrounded |
+| "Untrusted Developer" | Settings → General → VPN & Device Management → Verify (requires internet) |
+
+---
 
 ## Dependencies
 
-Managed via Swift Package Manager:
+| Package | Purpose |
+|---------|---------|
+| [meta-wearables-dat-ios](https://github.com/facebook/meta-wearables-dat-ios) | Glasses connection + camera |
+| [HaishinKit](https://github.com/shogo4405/HaishinKit.swift) | RTMP broadcasting |
+| [mlx-swift-lm](https://github.com/ml-explore/mlx-swift-lm) | On-device LLM inference |
 
-- **meta-wearables-dat-ios** (0.4.0+) - Meta's Device Access Toolkit
-  - MWDATCore - Device connection & communication
-  - MWDATCamera - Camera access
-
-## Configuration Details
-
-### Info.plist Permissions
-- `NSMicrophoneUsageDescription` - Wake word & voice commands
-- `NSSpeechRecognitionUsageDescription` - Transcription
-- `NSPhotoLibraryAddUsageDescription` - Photo saving
-- `NSBluetoothAlwaysUsageDescription` - Glasses connection
-
-### Background Modes
-- `audio` - Keep audio session active
-- `bluetooth-central` - Maintain BLE connection
-
-### Bundle Configuration
-- Bundle ID: `com.openglasses.OpenGlasses.skunk0`
-- Display Name: OpenGlasses
-- Version: 1.2 (Build 3)
-
-## Usage
-
-### First Time Setup
-1. Launch app on iPhone
-2. Allow microphone and Bluetooth permissions
-3. Meta AI app will open for glasses authorization
-4. Return to OpenGlasses - connection auto-establishes
-
-### Daily Use
-1. Wear your Ray-Ban Meta glasses
-2. Launch OpenGlasses (auto-connects in background)
-3. Say "Hey Claude" to activate
-4. Ask your question naturally
-5. Hear response through glasses
-6. Continue conversation or say "goodbye"
-
-### Troubleshooting
-- **Wake word not detecting**: Tap "Test Microphone" to restart listener
-- **No audio through glasses**: Check Bluetooth routing in iOS settings
-- **Connection issues**: Press "Connect to Glasses" to re-authorize
-- **"Internal error" when connecting**: You need to enable Developer Mode in the Meta AI app. Go to Meta AI → Settings → About → tap the version number **5 times** → toggle Developer Mode on. This is required for all third-party MWDAT apps.
-
-## Development Notes
-
-### Key Implementation Details
-- Wake word model runs continuously at low CPU cost
-- Transcription triggered only after wake word detection
-- Audio engine shared between services to prevent route conflicts
-- Conversation state prevents rapid wake word re-triggering
-- Silence detection after responses enables natural turn-taking
-
-### Future Enhancements
-- [ ] Custom wake word training
-- [ ] Multi-turn conversation context
-- [ ] Vision API integration for image analysis
-- [ ] Offline Claude caching
-- [ ] Custom TTS voice selection
-- [ ] Gesture controls via glasses sensors
+---
 
 ## Contributing
 
-This is a Skunk0 project from Skunkworks NZ. Feel free to fork and adapt for your own use.
+Contributions welcome! This is fully open-source. Fork, improve, submit PRs.
+
+Key areas for contribution:
+- New native tools
+- Local model optimization
+- Translation quality improvements
+- Additional MCP server integrations
+- UI/UX improvements
 
 ## License
 
-MIT License - see LICENSE file for details
+MIT License — see LICENSE file.
 
 ## Credits
 
 Built by [Skunk0](https://github.com/straff2002) at Skunkworks NZ
 
-Powered by:
-- [Anthropic Claude](https://www.anthropic.com/) - AI Assistant
-- [Meta Wearables SDK](https://developers.facebook.com/docs/wearables/) - Glasses Integration
-- [Apple Speech Framework](https://developer.apple.com/documentation/speech) - Speech Recognition
+Powered by [Anthropic Claude](https://www.anthropic.com/), [Meta Wearables SDK](https://wearables.developer.meta.com/), [Apple MLX](https://github.com/ml-explore/mlx-swift), [ElevenLabs](https://elevenlabs.io/), [HaishinKit](https://github.com/shogo4405/HaishinKit.swift)
 
 ---
 
-**Note**: This is an independent project and is not affiliated with Meta or Anthropic.
+**Note**: Independent open-source project, not affiliated with Meta or Anthropic.

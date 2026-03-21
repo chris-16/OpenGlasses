@@ -32,6 +32,33 @@
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>fb-viewapp</string>
+		<string>comgooglemaps</string>
+		<string>podcasts</string>
+		<string>music</string>
+		<string>calshow</string>
+		<string>photos-redirect</string>
+		<string>mobilenotes</string>
+		<string>x-apple-reminderkit</string>
+		<string>applenews</string>
+		<string>stocks</string>
+		<string>voicememos</string>
+		<string>translate</string>
+		<string>fitnessapp</string>
+		<string>shortcuts</string>
+		<string>x-apple-health</string>
+		<string>shoebox</string>
+		<string>shareddocuments</string>
+		<string>youtube</string>
+		<string>spotify</string>
+		<string>whatsapp</string>
+		<string>instagram</string>
+		<string>twitter</string>
+		<string>tg</string>
+		<string>reddit</string>
+		<string>snssdk1233</string>
+		<string>nflx</string>
+		<string>uber</string>
+		<string>lyft</string>
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
@@ -40,7 +67,7 @@
 		<key>AppLinkURLScheme</key>
 		<string>https://straff2002.github.io/OpenGlasses</string>
 		<key>MetaAppID</key>
-		<string>YOUR_META_APP_ID</string>
+		<string>0</string>
 		<key>ClientToken</key>
 		<string>AR|YOUR_META_APP_ID|YOUR_CLIENT_TOKEN_HASH</string>
 		<key>TeamID</key>
@@ -58,12 +85,32 @@
 	<string>OpenGlasses needs microphone access to listen for wake words and transcribe your voice commands.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>OpenGlasses saves photos taken with your Ray-Ban Meta glasses to your photo library.</string>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>OpenGlasses accesses your calendar to tell you about upcoming events and create new ones hands-free.</string>
+	<key>NSCalendarsUsageDescription</key>
+	<string>OpenGlasses accesses your calendar to tell you about upcoming events and create new ones hands-free.</string>
+	<key>NSContactsUsageDescription</key>
+	<string>OpenGlasses looks up contacts so you can make calls and send messages by name through your glasses.</string>
+	<key>NSRemindersFullAccessUsageDescription</key>
+	<string>OpenGlasses creates and manages reminders so you can set them hands-free through your glasses.</string>
+	<key>NSRemindersUsageDescription</key>
+	<string>OpenGlasses creates and manages reminders so you can set them hands-free through your glasses.</string>
+	<key>NSMotionUsageDescription</key>
+	<string>OpenGlasses reads your step count and walking distance to report daily activity.</string>
+	<key>NSHomeKitUsageDescription</key>
+	<string>OpenGlasses controls your smart home devices hands-free through your glasses.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>OpenGlasses uses speech recognition to detect the wake word and transcribe your questions for Claude.</string>
+	<key>UISupportedExternalAccessoryProtocols</key>
+	<array>
+		<string>com.meta.ar.wearable</string>
+	</array>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>audio</string>
 		<string>bluetooth-central</string>
+		<string>bluetooth-peripheral</string>
+		<string>external-accessory</string>
 	</array>
 	<key>UILaunchScreen</key>
 	<dict/>
