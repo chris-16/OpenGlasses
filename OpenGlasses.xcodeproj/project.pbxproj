@@ -483,6 +483,7 @@
 				A1B2C3D4E5F6A7B8C9D0E1F2 /* RTMPHaishinKit */,
 				F2A3B4C5D6E7F8A9B0C1D3E4 /* MLXLLM */,
 				A3B4C5D6E7F8A9B0C1D3E4F5 /* MLXLMCommon */,
+				B4C5D6E7F8A9B0C1D3E4F5A6 /* MLXVLM */,
 			);
 			productName = OpenGlasses;
 			productReference = A795DD7E5DB69A5A400298C3 /* OpenGlasses.app */;
@@ -893,6 +894,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = E1F2A3B4C5D6E7F8A9B0C1D3 /* XCRemoteSwiftPackageReference "mlx-swift-lm" */;
 			productName = MLXLMCommon;
+		};
+		B4C5D6E7F8A9B0C1D3E4F5A6 /* MLXVLM */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E1F2A3B4C5D6E7F8A9B0C1D3 /* XCRemoteSwiftPackageReference "mlx-swift-lm" */;
+			productName = MLXVLM;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

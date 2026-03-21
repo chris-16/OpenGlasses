@@ -282,7 +282,7 @@ class LLMService: ObservableObject {
         case .gemini:
             return try await sendGemini(text, systemPrompt: fullPrompt, config: modelConfig, includeTools: includeTools, imageData: imageData)
         case .local:
-            return try await sendLocal(text, systemPrompt: fullPrompt, config: modelConfig, includeTools: includeTools)
+            return try await sendLocal(text, systemPrompt: fullPrompt, config: modelConfig, includeTools: includeTools, imageData: imageData)
         case .openai, .groq, .zai, .qwen, .minimax, .custom:
             return try await sendOpenAICompatible(text, systemPrompt: fullPrompt, config: modelConfig, includeTools: includeTools, imageData: imageData)
         }
@@ -809,7 +809,7 @@ class LLMService: ObservableObject {
 
     // MARK: - Local (On-Device MLX)
 
-    private func sendLocal(_ text: String, systemPrompt: String, config: ModelConfig, includeTools: Bool) async throws -> String {
+    private func sendLocal(_ text: String, systemPrompt: String, config: ModelConfig, includeTools: Bool, imageData: Data? = nil) async throws -> String {
         guard let localService = localLLMService else {
             throw LLMError.missingAPIKey("Local LLM service not initialized")
         }
@@ -847,60 +847,80 @@ class LLMService: ObservableObject {
         conversationHistory.append(["role": "user", "content": text])
         trimHistory()
 
-        // Generation + tool call loop
-        var currentMessage = text
-        for iteration in 0..<maxToolCallIterations {
-            let response = try await localService.generate(
-                userMessage: iteration == 0 ? currentMessage : currentMessage,
+        // Generate response
+        let response: String
+        do {
+            response = try await localService.generate(
+                userMessage: text,
                 systemPrompt: fullPrompt,
-                history: iteration == 0 ? history : history
+                history: history
             )
+        } catch {
+            print("❌ Local model generation failed: \(error)")
+            throw LLMError.invalidResponse("Local model error: \(error.localizedDescription)")
+        }
 
-            // Check for tool calls in response
-            let toolCallPattern = #"<tool_call>\s*(\{.*?\})\s*</tool_call>"#
-            guard let regex = try? NSRegularExpression(pattern: toolCallPattern, options: [.dotMatchesLineSeparators]),
-                  let match = regex.firstMatch(in: response, range: NSRange(response.startIndex..., in: response)),
-                  let jsonRange = Range(match.range(at: 1), in: response),
-                  let toolCallData = String(response[jsonRange]).data(using: .utf8),
-                  let toolCall = try? JSONSerialization.jsonObject(with: toolCallData) as? [String: Any],
-                  let toolName = toolCall["name"] as? String,
-                  let toolArgs = toolCall["arguments"] as? [String: Any],
-                  let router = nativeToolRouter else {
-                // No tool call found — this is the final response
-                let cleanResponse = response
-                    .replacingOccurrences(of: #"<tool_call>.*?</tool_call>"#, with: "", options: .regularExpression)
-                    .trimmingCharacters(in: .whitespacesAndNewlines)
-                conversationHistory.append(["role": "assistant", "content": cleanResponse])
-                trimHistory()
-                return cleanResponse
-            }
+        // Try to parse tool calls — but don't crash if the model doesn't support them well
+        let toolCallPattern = #"<tool_call>\s*(\{.*?\})\s*</tool_call>"#
+        if let regex = try? NSRegularExpression(pattern: toolCallPattern, options: [.dotMatchesLineSeparators]),
+           let match = regex.firstMatch(in: response, range: NSRange(response.startIndex..., in: response)),
+           let jsonRange = Range(match.range(at: 1), in: response),
+           let toolCallData = String(response[jsonRange]).data(using: .utf8),
+           let toolCall = try? JSONSerialization.jsonObject(with: toolCallData) as? [String: Any],
+           let toolName = toolCall["name"] as? String,
+           let toolArgs = toolCall["arguments"] as? [String: Any],
+           let router = nativeToolRouter {
 
             // Execute the tool
             print("🔧 Local model tool call: \(toolName)(\(toolArgs))")
             toolCallStatus = .executing(toolName)
             let result = await router.handleToolCall(name: toolName, args: toolArgs)
+            toolCallStatus = .idle
+
             let resultText: String
             switch result {
             case .success(let text): resultText = text
             case .failure(let error): resultText = "Error: \(error)"
             }
-            toolCallStatus = .idle
 
-            // Extract text before the tool call
-            let textBeforeToolCall = response
+            // Get the text before the tool call as context
+            let textBefore = response
                 .replacingOccurrences(of: #"<tool_call>.*?</tool_call>"#, with: "", options: .regularExpression)
                 .trimmingCharacters(in: .whitespacesAndNewlines)
 
-            // Append to history and re-generate
-            history.append((role: "assistant", content: response))
-            history.append((role: "user", content: "Tool result for \(toolName): \(resultText)"))
-            currentMessage = "Tool result for \(toolName): \(resultText)"
+            // Try to re-generate with tool result for a natural response
+            var updatedHistory = history
+            updatedHistory.append((role: "assistant", content: textBefore.isEmpty ? "Let me check that for you." : textBefore))
+            updatedHistory.append((role: "user", content: "Tool '\(toolName)' returned: \(resultText). Please respond naturally to the user based on this result."))
 
-            print("🔧 Tool result (\(iteration + 1)/\(maxToolCallIterations)): \(resultText.prefix(100))...")
+            let finalResponse: String
+            do {
+                finalResponse = try await localService.generate(
+                    userMessage: "Respond to the user based on the tool result above.",
+                    systemPrompt: fullPrompt,
+                    history: updatedHistory
+                )
+            } catch {
+                // If re-generation fails, just return the tool result directly
+                finalResponse = textBefore.isEmpty ? resultText : "\(textBefore) \(resultText)"
+            }
+
+            let cleanFinal = finalResponse
+                .replacingOccurrences(of: #"<tool_call>.*?</tool_call>"#, with: "", options: .regularExpression)
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+
+            conversationHistory.append(["role": "assistant", "content": cleanFinal])
+            trimHistory()
+            return cleanFinal
         }
 
-        // Exhausted iterations
-        return "I tried to use tools but reached the maximum number of attempts."
+        // No tool call — clean up any partial tool markup and return
+        let cleanResponse = response
+            .replacingOccurrences(of: #"<tool_call>.*?</tool_call>"#, with: "", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        conversationHistory.append(["role": "assistant", "content": cleanResponse])
+        trimHistory()
+        return cleanResponse
     }
 
     // MARK: - Helpers

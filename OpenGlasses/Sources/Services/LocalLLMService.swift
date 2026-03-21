@@ -2,6 +2,8 @@ import Foundation
 import Hub
 import MLXLLM
 import MLXLMCommon
+import MLXVLM
+import UIKit
 
 /// Manages on-device LLM inference via Apple's MLX framework.
 /// Handles model downloading, loading, generation, and lifecycle.
@@ -26,14 +28,24 @@ final class LocalLLMService: ObservableObject {
     // MARK: - Recommended Models
 
     static let recommendedModels: [RecommendedModel] = [
+        // Vision models (can see photos from glasses)
         RecommendedModel(
-            id: "mlx-community/gemma-2-2b-it-4bit",
-            name: "Gemma 2 2B",
+            id: "mlx-community/SmolVLM2-2.2B-Instruct-mlx",
+            name: "SmolVLM2 2.2B (Vision)",
             estimatedSize: "1.5 GB",
-            hasVision: false,
-            hasToolCalling: true,
-            notes: "Good balance of size and quality"
+            hasVision: true,
+            hasToolCalling: false,
+            notes: "Best small vision model — sees photos + video"
         ),
+        RecommendedModel(
+            id: "mlx-community/SmolVLM2-500M-Video-Instruct-mlx",
+            name: "SmolVLM2 500M (Vision)",
+            estimatedSize: "0.35 GB",
+            hasVision: true,
+            hasToolCalling: false,
+            notes: "Tiny vision model — basic photo understanding"
+        ),
+        // Text-only models
         RecommendedModel(
             id: "mlx-community/Qwen2.5-3B-Instruct-4bit",
             name: "Qwen 2.5 3B",
@@ -43,6 +55,14 @@ final class LocalLLMService: ObservableObject {
             notes: "Strong reasoning and tool use"
         ),
         RecommendedModel(
+            id: "mlx-community/gemma-2-2b-it-4bit",
+            name: "Gemma 2 2B",
+            estimatedSize: "1.5 GB",
+            hasVision: false,
+            hasToolCalling: true,
+            notes: "Good balance of size and quality"
+        ),
+        RecommendedModel(
             id: "mlx-community/Qwen2.5-0.5B-Instruct-4bit",
             name: "Qwen 2.5 0.5B",
             estimatedSize: "0.4 GB",
@@ -50,15 +70,19 @@ final class LocalLLMService: ObservableObject {
             hasToolCalling: true,
             notes: "Ultra-light, basic capability"
         ),
-        RecommendedModel(
-            id: "mlx-community/SmolLM2-1.7B-Instruct-4bit",
-            name: "SmolLM2 1.7B",
-            estimatedSize: "1.0 GB",
-            hasVision: false,
-            hasToolCalling: false,
-            notes: "Compact and fast"
-        ),
     ]
+
+    /// Known vision model IDs that need VLM inference.
+    static let visionModelIds: Set<String> = [
+        "mlx-community/SmolVLM2-2.2B-Instruct-mlx",
+        "mlx-community/SmolVLM2-500M-Video-Instruct-mlx",
+    ]
+
+    /// Whether the currently loaded model supports vision.
+    var isVisionModel: Bool {
+        guard let id = loadedModelId else { return false }
+        return Self.visionModelIds.contains(id)
+    }
 
     // MARK: - Model Management
 
@@ -82,6 +106,7 @@ final class LocalLLMService: ObservableObject {
     }
 
     /// Load an already-downloaded model into memory.
+    /// Uses LLMModelFactory for text models, VLMModelFactory for vision models.
     func loadModel(_ modelId: String) async throws {
         if loadedModelId == modelId && isModelLoaded {
             return  // Already loaded
@@ -90,7 +115,11 @@ final class LocalLLMService: ObservableObject {
         unloadModel()
 
         let config = ModelConfiguration(id: modelId)
-        modelContainer = try await LLMModelFactory.shared.loadContainer(
+        let factory: any ModelFactory = Self.visionModelIds.contains(modelId)
+            ? VLMModelFactory.shared
+            : LLMModelFactory.shared
+
+        modelContainer = try await factory.loadContainer(
             hub: hub, configuration: config
         ) { progress in
             Task { @MainActor in
@@ -100,7 +129,7 @@ final class LocalLLMService: ObservableObject {
 
         loadedModelId = modelId
         isModelLoaded = true
-        print("✅ Local model loaded: \(modelId)")
+        print("✅ Local model loaded: \(modelId) (vision: \(Self.visionModelIds.contains(modelId)))")
     }
 
     /// Unload model from memory.
