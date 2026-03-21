@@ -69,6 +69,7 @@ struct ModelPickerSheet: View {
                 .accessibilityElement(children: .combine)
                 .accessibilityLabel("\(model.name), \(model.llmProvider.displayName)\(model.id == activeId ? ", active" : "")")
             }
+            .buttonStyle(.plain)
         }
     }
 
