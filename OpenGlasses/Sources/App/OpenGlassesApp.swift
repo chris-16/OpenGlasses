@@ -229,6 +229,7 @@ class AppState: ObservableObject {
     let llmService = LLMService()
     let localLLMService = LocalLLMService()
     let mcpClient = MCPClient()
+    let liveTranslation = LiveTranslationService()
     let speechService = TextToSpeechService()
     let cameraService = CameraService()
     let videoRecorder = VideoRecordingService()
@@ -324,6 +325,18 @@ class AppState: ObservableObject {
         // Wire native tool router to LLM service and Gemini Live
         llmService.nativeToolRouter = nativeToolRouter
         nativeToolRouter.mcpClient = mcpClient
+
+        // Register live translation tool with its service reference
+        var translationTool = LiveTranslationTool()
+        translationTool.translationService = liveTranslation
+        nativeToolRegistry.register(translationTool)
+
+        // Wire translation output to TTS
+        liveTranslation.onTranslation = { [weak self] translation in
+            Task { @MainActor in
+                await self?.speechService.speak(translation)
+            }
+        }
         llmService.localLLMService = localLLMService
         geminiLiveSession.nativeToolRouter = nativeToolRouter
 

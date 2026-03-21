@@ -65,6 +65,8 @@ struct ToolsSettingsView: View {
             "contextual_note": "Contextual Notes",
             "social_context": "Social Context",
             "home_assistant": "Home Assistant",
+            "scan_code": "QR & Barcode Scanner",
+            "live_translate": "Live Translation",
         ]
         if let override = overrides[toolName] { return override }
         // Fallback: convert_currency → Convert Currency

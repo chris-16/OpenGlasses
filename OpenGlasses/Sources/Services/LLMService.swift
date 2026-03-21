@@ -188,6 +188,8 @@ class LLMService: ObservableObject {
             - contextual_note: Save notes with automatic location and time context. Search notes by keyword or location.
             - social_context: Remember facts about people. Add facts ('remember John works at Stripe'), recall ('what do I know about John?'), list people.
             - home_assistant: Control Home Assistant smart home — toggle devices, check states, list entities, run automations. Requires HA URL and token.
+            - scan_code: Scan QR codes or barcodes from the camera. Returns decoded content (URLs, text, product codes). Works offline.
+            - live_translate: Start/stop continuous live translation. Listens to spoken foreign language and translates in real-time. Actions: start, stop, status, set_language.
             """
 
                 // Inject user-defined custom tool descriptions

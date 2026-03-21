@@ -83,6 +83,12 @@ final class NativeToolRegistry {
             register(HomeAssistantTool())
         }
 
+        // Tier 5: Barcode scanning, live translation
+        if let camera = cameraService {
+            register(BarcodeScannerTool(cameraService: camera))
+        }
+        // LiveTranslationTool is registered separately after the service is created
+
         // User-defined custom tools
         registerCustomTools()
     }
@@ -95,7 +101,7 @@ final class NativeToolRegistry {
         }
     }
 
-    private func register(_ tool: any NativeTool) {
+    func register(_ tool: any NativeTool) {
         tools[tool.name] = tool
     }
 
