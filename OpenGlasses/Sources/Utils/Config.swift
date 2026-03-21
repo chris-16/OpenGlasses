@@ -26,7 +26,7 @@ struct ModelConfig: Codable, Identifiable, Equatable {
         switch provider {
         case .anthropic, .gemini, .openai:
             return true
-        case .groq:
+        case .groq, .local:
             return false
         case .qwen:
             // Qwen3.5-plus and qwen-vl models support vision

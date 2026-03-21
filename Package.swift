@@ -8,8 +8,11 @@ let package = Package(
     ],
     dependencies: [
         // Meta Wearables Device Access Toolkit
-        .package(url: "https://github.com/facebook/meta-wearables-dat-ios.git", from: "0.3.0"),
-
+        .package(url: "https://github.com/facebook/meta-wearables-dat-ios.git", from: "0.5.0"),
+        // HaishinKit — RTMP live streaming
+        .package(url: "https://github.com/shogo4405/HaishinKit.swift.git", from: "2.0.0"),
+        // MLX Swift LM — on-device LLM inference
+        .package(url: "https://github.com/ml-explore/mlx-swift-lm.git", branch: "main"),
     ],
     targets: [
         .target(
@@ -17,6 +20,10 @@ let package = Package(
             dependencies: [
                 .product(name: "MWDATCore", package: "meta-wearables-dat-ios"),
                 .product(name: "MWDATCamera", package: "meta-wearables-dat-ios"),
+                .product(name: "HaishinKit", package: "HaishinKit.swift"),
+                .product(name: "RTMPHaishinKit", package: "HaishinKit.swift"),
+                .product(name: "MLXLLM", package: "mlx-swift-lm"),
+                .product(name: "MLXLMCommon", package: "mlx-swift-lm"),
             ],
             path: "OpenGlasses/Sources",
             resources: [

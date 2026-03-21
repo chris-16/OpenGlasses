@@ -10,6 +10,7 @@ enum LLMProvider: String, CaseIterable {
     case qwen = "qwen"
     case minimax = "minimax"
     case custom = "custom"
+    case local = "local"
 
     var displayName: String {
         switch self {
@@ -21,13 +22,14 @@ enum LLMProvider: String, CaseIterable {
         case .qwen: return "Qwen (Coding Plan subscription)"
         case .minimax: return "MiniMax (Subscription)"
         case .custom: return "Custom (OpenAI-compatible)"
+        case .local: return "Local (On-Device)"
         }
     }
 
     /// Whether this provider uses the OpenAI-compatible API format
     var isOpenAICompatible: Bool {
         switch self {
-        case .anthropic, .gemini: return false
+        case .anthropic, .gemini, .local: return false
         case .openai, .groq, .zai, .qwen, .minimax, .custom: return true
         }
     }
@@ -43,6 +45,7 @@ enum LLMProvider: String, CaseIterable {
         case .qwen: return "https://coding-intl.dashscope.aliyuncs.com/v1/chat/completions"
         case .minimax: return "https://api.minimaxi.chat/v1/text/chatcompletion_v2"
         case .custom: return "https://api.openai.com/v1/chat/completions"
+        case .local: return ""
         }
     }
 
@@ -57,6 +60,7 @@ enum LLMProvider: String, CaseIterable {
         case .qwen: return "qwen3.5-plus"
         case .minimax: return "MiniMax-Text-01"
         case .custom: return "gpt-4o"
+        case .local: return "mlx-community/gemma-2-2b-it-4bit"
         }
     }
 
@@ -68,8 +72,21 @@ enum LLMProvider: String, CaseIterable {
         }
     }
 
+    /// Whether this provider requires an API key
+    var requiresAPIKey: Bool {
+        switch self {
+        case .local: return false
+        default: return true
+        }
+    }
+
     /// Whether this provider supports listing models via API
-    var supportsModelListing: Bool { true }
+    var supportsModelListing: Bool {
+        switch self {
+        case .local: return false
+        default: return true
+        }
+    }
 }
 
 /// Unified LLM service supporting Anthropic Claude and OpenAI-compatible APIs.
@@ -85,6 +102,9 @@ class LLMService: ObservableObject {
 
     /// Native tool router — when set, enables built-in tools (weather, timer, etc.)
     var nativeToolRouter: NativeToolRouter?
+
+    /// Local on-device LLM service (MLX Swift)
+    var localLLMService: LocalLLMService?
 
     /// Conversation history for multi-turn context
     private var conversationHistory: [[String: Any]] = []
@@ -261,6 +281,8 @@ class LLMService: ObservableObject {
             return try await sendAnthropic(text, systemPrompt: fullPrompt, config: modelConfig, includeTools: includeTools, imageData: imageData)
         case .gemini:
             return try await sendGemini(text, systemPrompt: fullPrompt, config: modelConfig, includeTools: includeTools, imageData: imageData)
+        case .local:
+            return try await sendLocal(text, systemPrompt: fullPrompt, config: modelConfig, includeTools: includeTools)
         case .openai, .groq, .zai, .qwen, .minimax, .custom:
             return try await sendOpenAICompatible(text, systemPrompt: fullPrompt, config: modelConfig, includeTools: includeTools, imageData: imageData)
         }
@@ -783,6 +805,102 @@ class LLMService: ObservableObject {
         // Exhausted iterations
         toolCallStatus = .idle
         throw LLMError.invalidResponse("Gemini (tool call loop exceeded)")
+    }
+
+    // MARK: - Local (On-Device MLX)
+
+    private func sendLocal(_ text: String, systemPrompt: String, config: ModelConfig, includeTools: Bool) async throws -> String {
+        guard let localService = localLLMService else {
+            throw LLMError.missingAPIKey("Local LLM service not initialized")
+        }
+
+        // Ensure model is loaded
+        if !localService.isModelLoaded || localService.loadedModelId != config.model {
+            try await localService.loadModel(config.model)
+        }
+
+        // Build tool instructions for the system prompt
+        var fullPrompt = systemPrompt
+        if includeTools, let router = nativeToolRouter {
+            let toolNames = router.registry.toolNames
+            if !toolNames.isEmpty {
+                fullPrompt += """
+
+                \nTOOL CALLING:
+                When you need to use a tool, output exactly this format on its own line:
+                <tool_call>{"name": "tool_name", "arguments": {"key": "value"}}</tool_call>
+                After a tool result is provided, continue your response.
+                Available tools: \(toolNames.joined(separator: ", "))
+                """
+            }
+        }
+
+        // Build history from conversation
+        var history: [(role: String, content: String)] = []
+        for turn in conversationHistory {
+            if let role = turn["role"] as? String, let content = turn["content"] as? String {
+                history.append((role: role, content: content))
+            }
+        }
+
+        // Add user message to history
+        conversationHistory.append(["role": "user", "content": text])
+        trimHistory()
+
+        // Generation + tool call loop
+        var currentMessage = text
+        for iteration in 0..<maxToolCallIterations {
+            let response = try await localService.generate(
+                userMessage: iteration == 0 ? currentMessage : currentMessage,
+                systemPrompt: fullPrompt,
+                history: iteration == 0 ? history : history
+            )
+
+            // Check for tool calls in response
+            let toolCallPattern = #"<tool_call>\s*(\{.*?\})\s*</tool_call>"#
+            guard let regex = try? NSRegularExpression(pattern: toolCallPattern, options: [.dotMatchesLineSeparators]),
+                  let match = regex.firstMatch(in: response, range: NSRange(response.startIndex..., in: response)),
+                  let jsonRange = Range(match.range(at: 1), in: response),
+                  let toolCallData = String(response[jsonRange]).data(using: .utf8),
+                  let toolCall = try? JSONSerialization.jsonObject(with: toolCallData) as? [String: Any],
+                  let toolName = toolCall["name"] as? String,
+                  let toolArgs = toolCall["arguments"] as? [String: Any],
+                  let router = nativeToolRouter else {
+                // No tool call found — this is the final response
+                let cleanResponse = response
+                    .replacingOccurrences(of: #"<tool_call>.*?</tool_call>"#, with: "", options: .regularExpression)
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                conversationHistory.append(["role": "assistant", "content": cleanResponse])
+                trimHistory()
+                return cleanResponse
+            }
+
+            // Execute the tool
+            print("🔧 Local model tool call: \(toolName)(\(toolArgs))")
+            toolCallStatus = .executing(toolName)
+            let result = await router.handleToolCall(name: toolName, args: toolArgs)
+            let resultText: String
+            switch result {
+            case .success(let text): resultText = text
+            case .failure(let error): resultText = "Error: \(error)"
+            }
+            toolCallStatus = .idle
+
+            // Extract text before the tool call
+            let textBeforeToolCall = response
+                .replacingOccurrences(of: #"<tool_call>.*?</tool_call>"#, with: "", options: .regularExpression)
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+
+            // Append to history and re-generate
+            history.append((role: "assistant", content: response))
+            history.append((role: "user", content: "Tool result for \(toolName): \(resultText)"))
+            currentMessage = "Tool result for \(toolName): \(resultText)"
+
+            print("🔧 Tool result (\(iteration + 1)/\(maxToolCallIterations)): \(resultText.prefix(100))...")
+        }
+
+        // Exhausted iterations
+        return "I tried to use tools but reached the maximum number of attempts."
     }
 
     // MARK: - Helpers

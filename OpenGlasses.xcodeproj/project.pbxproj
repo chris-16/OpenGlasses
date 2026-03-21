@@ -55,6 +55,8 @@
 		E1F2A3B4C5D6E7F8A9B0C1D2 /* NetworkMonitorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2A3B4C5D6E7F8A9B0C1D2E3 /* NetworkMonitorView.swift */; };
 		F3A4B5C6D7E8F9A0B1C2D3E4 /* CustomToolWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4B5C6D7E8F9A0B1C2D3E4F5 /* CustomToolWrapper.swift */; };
 		A5B6C7D8E9F0A1B2C3D4E5F7 /* NetworkMonitorService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6C7D8E9F0A1B2C3D4E5F6A8 /* NetworkMonitorService.swift */; };
+		B7C8D9E0F1A2B3C4D5E6F7A8 /* LocalLLMService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8D9E0F1A2B3C4D5E6F7A8B9 /* LocalLLMService.swift */; };
+		C9D0E1F2A3B4C5D6E7F8A9B0 /* LocalModelManagerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E1F2A3B4C5D6E7F8A9B0C1 /* LocalModelManagerView.swift */; };
 		D476884067774F4102608A82 /* FrameThrottler.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7E25E4491B13CEDF14D4364 /* FrameThrottler.swift */; };
 		E0D62BE69472F32DE3DB600F /* OpenClawBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92A74F270CBABDF72C72C5BD /* OpenClawBridge.swift */; };
 		E547F4974B491D0B9156FD8F /* LocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9886D8FB33DA06C125BEBEBA /* LocationService.swift */; };
@@ -139,6 +141,8 @@
 		F2A3B4C5D6E7F8A9B0C1D2E3 /* NetworkMonitorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitorView.swift; sourceTree = "<group>"; };
 		A4B5C6D7E8F9A0B1C2D3E4F5 /* CustomToolWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomToolWrapper.swift; sourceTree = "<group>"; };
 		B6C7D8E9F0A1B2C3D4E5F6A8 /* NetworkMonitorService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitorService.swift; sourceTree = "<group>"; };
+		C8D9E0F1A2B3C4D5E6F7A8B9 /* LocalLLMService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalLLMService.swift; sourceTree = "<group>"; };
+		D0E1F2A3B4C5D6E7F8A9B0C1 /* LocalModelManagerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalModelManagerView.swift; sourceTree = "<group>"; };
 		3B6692EEA65ADB1BD263FEFE /* LivePreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LivePreviewView.swift; sourceTree = "<group>"; };
 		45E3B3049C0DE740FA37ABE1 /* intro.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = intro.mp4; sourceTree = "<group>"; };
 		4EB1758883EBE09AD50C9BEB /* GeminiLiveAudioManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeminiLiveAudioManager.swift; sourceTree = "<group>"; };
@@ -296,6 +300,7 @@
 				D8E9F0A1B2C3D4E5F6A7B8C9 /* PromptPresetsView.swift */,
 				E0F1A2B3C4D5E6F7A8B9C0D1 /* CustomToolsView.swift */,
 				F2A3B4C5D6E7F8A9B0C1D2E3 /* NetworkMonitorView.swift */,
+				D0E1F2A3B4C5D6E7F8A9B0C1 /* LocalModelManagerView.swift */,
 				8BAB04141EE25C5FE20E591C /* StatusIndicator.swift */,
 				6E1A21659693E4ECCA07AC67 /* TranscriptOverlay.swift */,
 				3B6692EEA65ADB1BD263FEFE /* LivePreviewView.swift */,
@@ -382,6 +387,7 @@
 				CC0D0D0D0D0D0D0DCC0D0D0D /* NativeTools */,
 				92A74F270CBABDF72C72C5BD /* OpenClawBridge.swift */,
 				B6C7D8E9F0A1B2C3D4E5F6A8 /* NetworkMonitorService.swift */,
+				C8D9E0F1A2B3C4D5E6F7A8B9 /* LocalLLMService.swift */,
 				6E0EFD4CE4C3499FDF5444E0 /* TextToSpeechService.swift */,
 				633DF6FE961BCCB26868D5AB /* ToolCallRouter.swift */,
 				1F9E1F6B5AC442EC808D2B26 /* TranscriptionService.swift */,
@@ -475,6 +481,8 @@
 				D8AD4E224036184FB764A25D /* MWDATCamera */,
 				27131AD75570EDC61A5105EC /* HaishinKit */,
 				A1B2C3D4E5F6A7B8C9D0E1F2 /* RTMPHaishinKit */,
+				F2A3B4C5D6E7F8A9B0C1D3E4 /* MLXLLM */,
+				A3B4C5D6E7F8A9B0C1D3E4F5 /* MLXLMCommon */,
 			);
 			productName = OpenGlasses;
 			productReference = A795DD7E5DB69A5A400298C3 /* OpenGlasses.app */;
@@ -502,6 +510,7 @@
 			packageReferences = (
 				690D46B49137A735781C2EAC /* XCRemoteSwiftPackageReference "meta-wearables-dat-ios" */,
 				C4E037CC662233A5432409C6 /* XCRemoteSwiftPackageReference "HaishinKit.swift" */,
+				E1F2A3B4C5D6E7F8A9B0C1D3 /* XCRemoteSwiftPackageReference "mlx-swift-lm" */,
 			);
 			productRefGroup = 2FF5D8C273F7690D085621F8 /* Products */;
 			projectDirPath = "";
@@ -561,6 +570,8 @@
 				E1F2A3B4C5D6E7F8A9B0C1D2 /* NetworkMonitorView.swift in Sources */,
 				F3A4B5C6D7E8F9A0B1C2D3E4 /* CustomToolWrapper.swift in Sources */,
 				A5B6C7D8E9F0A1B2C3D4E5F7 /* NetworkMonitorService.swift in Sources */,
+				B7C8D9E0F1A2B3C4D5E6F7A8 /* LocalLLMService.swift in Sources */,
+				C9D0E1F2A3B4C5D6E7F8A9B0 /* LocalModelManagerView.swift in Sources */,
 				A1C3E5F7B9D2A4C6E8F0B1D3 /* OnboardingOverlay.swift in Sources */,
 				C3E5A7B9D1F2C4E6A8B0D2F4 /* ServicesSettingsView.swift in Sources */,
 				9FC6BD9F7F9FD1EF36DAFA00 /* StatusIndicator.swift in Sources */,
@@ -842,6 +853,14 @@
 				minimumVersion = 2.0.0;
 			};
 		};
+		E1F2A3B4C5D6E7F8A9B0C1D3 /* XCRemoteSwiftPackageReference "mlx-swift-lm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ml-explore/mlx-swift-lm.git";
+			requirement = {
+				kind = branch;
+				branch = main;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -864,6 +883,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 690D46B49137A735781C2EAC /* XCRemoteSwiftPackageReference "meta-wearables-dat-ios" */;
 			productName = MWDATCamera;
+		};
+		F2A3B4C5D6E7F8A9B0C1D3E4 /* MLXLLM */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E1F2A3B4C5D6E7F8A9B0C1D3 /* XCRemoteSwiftPackageReference "mlx-swift-lm" */;
+			productName = MLXLLM;
+		};
+		A3B4C5D6E7F8A9B0C1D3E4F5 /* MLXLMCommon */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E1F2A3B4C5D6E7F8A9B0C1D3 /* XCRemoteSwiftPackageReference "mlx-swift-lm" */;
+			productName = MLXLMCommon;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

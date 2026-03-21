@@ -198,6 +198,7 @@ class AppState: ObservableObject {
     let wakeWordService = WakeWordService()
     let transcriptionService = TranscriptionService()
     let llmService = LLMService()
+    let localLLMService = LocalLLMService()
     let speechService = TextToSpeechService()
     let cameraService = CameraService()
     let videoRecorder = VideoRecordingService()
@@ -292,6 +293,7 @@ class AppState: ObservableObject {
 
         // Wire native tool router to LLM service and Gemini Live
         llmService.nativeToolRouter = nativeToolRouter
+        llmService.localLLMService = localLLMService
         geminiLiveSession.nativeToolRouter = nativeToolRouter
 
         // Wire camera frames for realtime sessions:

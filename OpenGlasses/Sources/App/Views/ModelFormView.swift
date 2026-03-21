@@ -54,72 +54,94 @@ struct ModelFormView: View {
             Text("Provider")
         }
 
-        Section {
-            SecureField("API Key", text: $apiKey)
-                .autocorrectionDisabled()
-                .textInputAutocapitalization(.never)
-                .onChange(of: apiKey) { _, _ in resetModelList() }
-
-            if selectedProvider.showBaseURL {
-                TextField("Base URL", text: $baseURL)
+        if selectedProvider == .local {
+            // MARK: Local model section
+            Section {
+                TextField("HuggingFace model ID", text: $model)
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.never)
-                    .onChange(of: baseURL) { _, _ in resetModelList() }
-            }
 
-            Button {
-                Task { await fetchModels() }
-            } label: {
-                HStack {
-                    if isFetchingModels {
-                        ProgressView()
-                            .scaleEffect(0.8)
-                        Text("Validating…")
-                    } else if keyValidated {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundStyle(.green)
-                        Text("Key valid — \(availableModels.count) models")
-                    } else {
-                        Image(systemName: "arrow.triangle.2.circlepath")
-                        Text("Validate key & fetch models")
+                NavigationLink {
+                    LocalModelManagerView()
+                } label: {
+                    Label("Manage Local Models", systemImage: "arrow.down.circle")
+                }
+
+                Toggle("Vision (Image Input)", isOn: $supportsVision)
+            } header: {
+                Text("Local Model")
+            } footer: {
+                Text("Download models in Manage Local Models, then enter the model ID here. No internet needed after download.")
+            }
+        } else {
+            // MARK: Cloud API key section
+            Section {
+                SecureField("API Key", text: $apiKey)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.never)
+                    .onChange(of: apiKey) { _, _ in resetModelList() }
+
+                if selectedProvider.showBaseURL {
+                    TextField("Base URL", text: $baseURL)
+                        .autocorrectionDisabled()
+                        .textInputAutocapitalization(.never)
+                        .onChange(of: baseURL) { _, _ in resetModelList() }
+                }
+
+                Button {
+                    Task { await fetchModels() }
+                } label: {
+                    HStack {
+                        if isFetchingModels {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                            Text("Validating…")
+                        } else if keyValidated {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundStyle(.green)
+                            Text("Key valid — \(availableModels.count) models")
+                        } else {
+                            Image(systemName: "arrow.triangle.2.circlepath")
+                            Text("Validate key & fetch models")
+                        }
                     }
                 }
-            }
-            .disabled(apiKey.isEmpty || isFetchingModels)
+                .disabled(apiKey.isEmpty || isFetchingModels)
 
-            if let error = fetchError {
-                Label(error, systemImage: "xmark.circle")
-                    .font(.footnote)
-                    .foregroundStyle(.red)
-            }
-        } header: {
-            Text("API Key")
-        } footer: {
-            Text(providerHelpText)
-        }
-
-        Section {
-            if !availableModels.isEmpty {
-                Picker("Select Model", selection: $model) {
-                    ForEach(availableModels) { m in
-                        Text(m.name).tag(m.id)
-                    }
+                if let error = fetchError {
+                    Label(error, systemImage: "xmark.circle")
+                        .font(.footnote)
+                        .foregroundStyle(.red)
                 }
-                .pickerStyle(.menu)
+            } header: {
+                Text("API Key")
+            } footer: {
+                Text(providerHelpText)
             }
 
-            TextField("Model ID", text: $model)
-                .autocorrectionDisabled()
-                .textInputAutocapitalization(.never)
+            Section {
+                if !availableModels.isEmpty {
+                    Picker("Select Model", selection: $model) {
+                        ForEach(availableModels) { m in
+                            Text(m.name).tag(m.id)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                }
 
-            Toggle("Vision (Image Input)", isOn: $supportsVision)
-        } header: {
-            Text("Model")
-        } footer: {
-            if !availableModels.isEmpty {
-                Text("Pick from the list or type a model ID. Turn on Vision to send photos from your glasses to the AI.")
-            } else {
-                Text("Turn on Vision to send photos from your glasses to the AI. Leave it off for text-only models.")
+                TextField("Model ID", text: $model)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.never)
+
+                Toggle("Vision (Image Input)", isOn: $supportsVision)
+            } header: {
+                Text("Model")
+            } footer: {
+                if !availableModels.isEmpty {
+                    Text("Pick from the list or type a model ID. Turn on Vision to send photos from your glasses to the AI.")
+                } else {
+                    Text("Turn on Vision to send photos from your glasses to the AI. Leave it off for text-only models.")
+                }
             }
         }
     }
@@ -164,6 +186,7 @@ struct ModelFormView: View {
         case .qwen: return "Coding Plan subscription — coding-intl.dashscope.aliyuncs.com"
         case .minimax: return "MiniMax subscription — platform.minimaxi.com"
         case .custom: return "Any OpenAI-compatible API endpoint"
+        case .local: return "On-device inference — no internet needed"
         }
     }
 }
