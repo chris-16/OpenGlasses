@@ -814,44 +814,44 @@ class LLMService: ObservableObject {
             throw LLMError.missingAPIKey("Local LLM service not initialized")
         }
 
-        // Auto-swap: use vision model for photos, text model for conversation
-        let targetModelId: String
-        if imageData != nil, !Config.localVisionModelId.isEmpty {
-            targetModelId = Config.localVisionModelId
-            print("📷 Auto-swap: using vision model \(targetModelId)")
-        } else if !Config.localTextModelId.isEmpty {
-            targetModelId = Config.localTextModelId
-        } else {
-            targetModelId = config.model
+        // Load the configured model (no auto-swap — user picks one model)
+        if !localService.isModelLoaded || localService.loadedModelId != config.model {
+            try await localService.loadModel(config.model)
         }
 
-        // Load target model if different from current
-        if !localService.isModelLoaded || localService.loadedModelId != targetModelId {
-            print("🔄 Swapping local model to: \(targetModelId)")
-            try await localService.loadModel(targetModelId)
-        }
-
-        // Build tool instructions for the system prompt
+        // Build tool instructions — use minimal set for local models
         var fullPrompt = systemPrompt
         if includeTools, let router = nativeToolRouter {
-            let toolNames = router.registry.toolNames
+            // Local models get a reduced tool set — only simple, reliable tools
+            let localSafeTools: Set<String> = [
+                "get_weather", "get_datetime", "calculate", "set_timer",
+                "flashlight", "brightness", "calendar", "reminder",
+                "set_alarm", "step_count", "device_info", "music_control"
+            ]
+            let toolNames = router.registry.toolNames.filter { localSafeTools.contains($0) }
             if !toolNames.isEmpty {
                 fullPrompt += """
 
-                \nTOOL CALLING:
-                When you need to use a tool, output exactly this format on its own line:
-                <tool_call>{"name": "tool_name", "arguments": {"key": "value"}}</tool_call>
-                After a tool result is provided, continue your response.
-                Available tools: \(toolNames.joined(separator: ", "))
+                \nTOOLS (use sparingly, only when the user clearly needs one):
+                Output exactly: <tool_call>{"name": "tool_name", "arguments": {"key": "value"}}</tool_call>
+                Available: \(toolNames.joined(separator: ", "))
+                Only use a tool if the user explicitly asks for that action. Otherwise just answer directly.
                 """
             }
         }
 
-        // Build history from conversation
+        // Build history — keep only last 2 exchanges for local models (context is precious)
+        let recentHistory = conversationHistory.suffix(4)
         var history: [(role: String, content: String)] = []
-        for turn in conversationHistory {
+        for turn in recentHistory {
             if let role = turn["role"] as? String, let content = turn["content"] as? String {
-                history.append((role: role, content: content))
+                // Strip any tool call markup from history to keep context clean
+                let clean = content
+                    .replacingOccurrences(of: #"<tool_call>.*?</tool_call>"#, with: "", options: .regularExpression)
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                if !clean.isEmpty {
+                    history.append((role: role, content: clean))
+                }
             }
         }
 

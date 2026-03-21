@@ -31,39 +31,6 @@ struct LocalModelManagerView: View {
                 Text("Device")
             }
 
-            // MARK: Model Roles
-            if !downloadedIds.isEmpty {
-                Section {
-                    Picker("Conversation", selection: $textModelId) {
-                        Text("None").tag("")
-                        ForEach(downloadedIds, id: \.self) { modelId in
-                            Text(modelDisplayName(modelId)).tag(modelId)
-                        }
-                    }
-                    .onChange(of: textModelId) { _, newValue in
-                        Config.setLocalTextModelId(newValue)
-                    }
-
-                    Picker("Photos", selection: $visionModelId) {
-                        Text("None").tag("")
-                        ForEach(downloadedIds.filter { LocalLLMService.visionModelIds.contains($0) }, id: \.self) { modelId in
-                            Text(modelDisplayName(modelId)).tag(modelId)
-                        }
-                        // Also show non-vision models in case user wants to try
-                        ForEach(downloadedIds.filter { !LocalLLMService.visionModelIds.contains($0) }, id: \.self) { modelId in
-                            Text("\(modelDisplayName(modelId)) (text only)").tag(modelId)
-                        }
-                    }
-                    .onChange(of: visionModelId) { _, newValue in
-                        Config.setLocalVisionModelId(newValue)
-                    }
-                } header: {
-                    Text("Model Roles")
-                } footer: {
-                    Text("Assign which model handles conversation vs photos. The app auto-swaps when you take a photo — there's a brief loading pause during the switch.")
-                }
-            }
-
             // MARK: Downloaded Models
             Section {
                 if downloadedIds.isEmpty {

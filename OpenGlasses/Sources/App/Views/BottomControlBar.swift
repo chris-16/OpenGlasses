@@ -24,6 +24,12 @@ struct BottomControlBar: View {
     // MARK: - Slot visibility
 
     private var previewVisible: Bool { appState.isConnected }
+
+    /// Photo capture disabled for local text-only models (no vision encoder).
+    private var photoDisabledForLocalModel: Bool {
+        guard let model = Config.activeModel, model.llmProvider == .local else { return false }
+        return !model.visionEnabled
+    }
     private var modeVisible: Bool {
         switch appState.currentMode {
         case .geminiLive, .openaiRealtime: return true
@@ -123,10 +129,12 @@ struct BottomControlBar: View {
                 icon: "camera.fill",
                 size: 48,
                 isActive: appState.cameraService.isCaptureInProgress,
-                isDisabled: appState.cameraService.isCaptureInProgress,
-                label: "Take Photo"
+                isDisabled: appState.cameraService.isCaptureInProgress || photoDisabledForLocalModel,
+                label: photoDisabledForLocalModel ? "Photos not available (text-only model)" : "Take Photo"
             ) {
-                Task { await appState.captureAndSharePhoto() }
+                if !photoDisabledForLocalModel {
+                    Task { await appState.captureAndSharePhoto() }
+                }
             }
         }
     }
