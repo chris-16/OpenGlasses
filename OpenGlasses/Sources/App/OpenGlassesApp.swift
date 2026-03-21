@@ -786,6 +786,55 @@ class AppState: ObservableObject {
     }
 
     /// Capture a photo from the glasses camera and present the share sheet.
+    /// Capture a photo and send it to the LLM for analysis (manual camera button).
+    func captureAndAnalyzePhoto() async {
+        guard isConnected else {
+            errorMessage = "Connect glasses first"
+            return
+        }
+        isProcessing = true
+        speechService.startThinkingSound()
+        do {
+            let photoData = try await cameraService.capturePhoto()
+            if currentMode == .direct {
+                cameraService.restoreAudioForWakeWord()
+            }
+            cameraService.saveToPhotoLibrary(photoData)
+            print("📸 Manual photo captured, sending to LLM for analysis")
+
+            let prompt = "Describe what you see in this image."
+            let rawResponse = try await llmService.sendMessage(
+                prompt,
+                locationContext: locationService.locationContext,
+                imageData: photoData,
+                memoryContext: Config.userMemoryEnabled ? userMemory.systemPromptContext() : nil
+            )
+            let response = Config.userMemoryEnabled ? userMemory.parseAndExecuteCommands(in: rawResponse) : rawResponse
+            lastResponse = response
+            if Config.conversationPersistenceEnabled {
+                conversationStore.appendMessage(role: "user", content: "[Photo taken manually]")
+                conversationStore.appendMessage(role: "assistant", content: response)
+            }
+            print("🤖 \(llmService.activeModelName) (vision): \(response)")
+
+            isProcessing = false
+            startStopListener()
+            await speechService.speak(response)
+            stopStopListener()
+
+            let generator = UINotificationFeedbackGenerator()
+            generator.notificationOccurred(.success)
+        } catch {
+            if currentMode == .direct {
+                cameraService.restoreAudioForWakeWord()
+            }
+            isProcessing = false
+            errorMessage = "Photo failed: \(error.localizedDescription)"
+            let generator = UINotificationFeedbackGenerator()
+            generator.notificationOccurred(.error)
+        }
+    }
+
     func captureAndSharePhoto() async {
         guard isConnected else {
             errorMessage = "Connect glasses first"

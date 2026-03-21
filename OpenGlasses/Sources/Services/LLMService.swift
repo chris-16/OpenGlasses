@@ -360,7 +360,7 @@ class LLMService: ObservableObject {
 
             if includeTools {
                 let includeOpenClaw = Config.isOpenClawConfigured && openClawBridge != nil
-                body["tools"] = ToolDeclarations.anthropicTools(registry: nativeToolRouter?.registry, includeOpenClaw: includeOpenClaw)
+                body["tools"] = await MainActor.run { ToolDeclarations.anthropicTools(registry: nativeToolRouter?.registry, includeOpenClaw: includeOpenClaw) }
             }
 
             request.httpBody = try JSONSerialization.data(withJSONObject: body)
@@ -543,7 +543,7 @@ class LLMService: ObservableObject {
 
             if includeTools && providerSupportsTools {
                 let includeOpenClaw = Config.isOpenClawConfigured && openClawBridge != nil
-                body["tools"] = ToolDeclarations.openAITools(registry: nativeToolRouter?.registry, includeOpenClaw: includeOpenClaw)
+                body["tools"] = await MainActor.run { ToolDeclarations.openAITools(registry: nativeToolRouter?.registry, includeOpenClaw: includeOpenClaw) }
             }
 
             request.httpBody = try JSONSerialization.data(withJSONObject: body)
@@ -724,7 +724,7 @@ class LLMService: ObservableObject {
 
             if includeTools {
                 let includeOpenClaw = Config.isOpenClawConfigured && openClawBridge != nil
-                body["tools"] = ToolDeclarations.geminiRESTTools(registry: nativeToolRouter?.registry, includeOpenClaw: includeOpenClaw)
+                body["tools"] = await MainActor.run { ToolDeclarations.geminiRESTTools(registry: nativeToolRouter?.registry, includeOpenClaw: includeOpenClaw) }
             }
 
             request.httpBody = try JSONSerialization.data(withJSONObject: body)

@@ -132,7 +132,7 @@ struct BottomControlBar: View {
                 label: photoDisabledForLocalModel ? "Photos not available (text-only model)" : "Take Photo"
             ) {
                 if !photoDisabledForLocalModel {
-                    Task { await appState.captureAndSharePhoto() }
+                    Task { await appState.captureAndAnalyzePhoto() }
                 }
             }
         }

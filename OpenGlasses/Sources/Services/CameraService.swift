@@ -160,34 +160,77 @@ class CameraService: ObservableObject {
 
         try await ensurePermission()
 
-        // Create a temporary stream session for photo capture (needs .high resolution)
-        let photoSession = StreamSession(
-            streamSessionConfig: StreamSessionConfig(
-                videoCodec: .raw,
-                resolution: .high,
-                frameRate: 15
-            ),
-            deviceSelector: deviceSelector
-        )
+        // Create a stream session and wait for .streaming state.
+        // If permission was just granted, the first session often fails (audio session
+        // reconfiguration kills it), so we retry with a fresh session.
+        var photoSession: StreamSession!
+        let maxAttempts = 2
 
-        // Listen for photo data
-        photoListenerToken = photoSession.photoDataPublisher.listen { [weak self] photoData in
-            Task { @MainActor in
-                self?.handlePhotoData(photoData)
+        for attempt in 1...maxAttempts {
+            NSLog("[Camera] Starting stream session (attempt %d/%d)", attempt, maxAttempts)
+
+            photoSession = StreamSession(
+                streamSessionConfig: StreamSessionConfig(
+                    videoCodec: .raw,
+                    resolution: .high,
+                    frameRate: 15
+                ),
+                deviceSelector: deviceSelector
+            )
+
+            // Listen for photo data
+            photoListenerToken = photoSession.photoDataPublisher.listen { [weak self] photoData in
+                Task { @MainActor in
+                    self?.handlePhotoData(photoData)
+                }
+            }
+
+            await photoSession.start()
+
+            // Wait for .streaming state (up to 3s)
+            var streamReady = false
+            for _ in 0..<6 {
+                try await Task.sleep(nanoseconds: 500_000_000)
+                let state = photoSession.state
+                NSLog("[Camera] Stream state: %@", String(describing: state))
+                if state == .streaming {
+                    streamReady = true
+                    break
+                }
+                if state == .stopped {
+                    NSLog("[Camera] Stream stopped unexpectedly")
+                    break
+                }
+            }
+
+            if streamReady {
+                break
+            }
+
+            // Clean up failed session before retry
+            NSLog("[Camera] Stream failed to reach .streaming, stopping session")
+            await photoSession.stop()
+            photoListenerToken = nil
+
+            if attempt < maxAttempts {
+                // Brief pause before retry — let audio session settle
+                try await Task.sleep(nanoseconds: 1_000_000_000)
             }
         }
 
-        // Start the stream (required before capture)
-        await photoSession.start()
-
-        // Wait briefly for streaming to stabilize
-        try await Task.sleep(nanoseconds: 500_000_000)  // 0.5s
+        guard photoSession.state == .streaming else {
+            await photoSession.stop()
+            photoListenerToken = nil
+            throw CameraError.captureFailed
+        }
 
         // Capture the photo
         let photoData: Data = try await withCheckedThrowingContinuation { continuation in
             self.photoContinuation = continuation
 
+            NSLog("[Camera] Calling capturePhoto(format: .jpeg)...")
             let success = photoSession.capturePhoto(format: .jpeg)
+            NSLog("[Camera] capturePhoto returned: %@", success ? "true" : "false")
             if !success {
                 self.photoContinuation = nil
                 continuation.resume(throwing: CameraError.captureFailed)
