@@ -90,6 +90,16 @@ enum ToolDeclarations {
         return [execute]
     }
 
+    /// Build declarations from native tool registry + optional OpenClaw execute tool.
+    @MainActor
+    static func allDeclarations(registry: NativeToolRegistry?, includeOpenClaw: Bool) -> [[String: Any]] {
+        var declarations = nativeToolDeclarations(registry: registry)
+        if includeOpenClaw {
+            declarations.append(execute)
+        }
+        return declarations
+    }
+
     /// The single "execute" tool that routes all actions through OpenClaw.
     static let execute: [String: Any] = [
         "name": "execute",
@@ -114,49 +124,80 @@ enum ToolDeclarations {
 
     // MARK: - Provider-Specific Formats
 
-    /// Anthropic tool format for the Messages API
-    static func anthropicTools() -> [[String: Any]] {
-        return [[
-            "name": "execute",
-            "description": execute["description"] as! String,
-            "input_schema": [
-                "type": "object",
-                "properties": [
-                    "task": [
-                        "type": "string",
-                        "description": "Clear, detailed description of what to do. Include all relevant context: names, content, platforms, quantities, etc."
-                    ]
-                ],
-                "required": ["task"]
+    /// Build native tool declarations from the registry.
+    @MainActor
+    private static func nativeToolDeclarations(registry: NativeToolRegistry?) -> [[String: Any]] {
+        guard let registry else { return [] }
+        return registry.allTools.filter { Config.isToolEnabled($0.name) }.map { tool in
+            [
+                "name": tool.name,
+                "description": tool.description,
+                "parameters": tool.parametersSchema,
             ] as [String: Any]
-        ]]
+        }
+    }
+
+    /// Anthropic tool format for the Messages API
+    @MainActor
+    static func anthropicTools(registry: NativeToolRegistry?, includeOpenClaw: Bool) -> [[String: Any]] {
+        var tools: [[String: Any]] = nativeToolDeclarations(registry: registry).map { decl in
+            [
+                "name": decl["name"] as! String,
+                "description": decl["description"] as! String,
+                "input_schema": decl["parameters"] as Any,
+            ]
+        }
+        if includeOpenClaw {
+            tools.append([
+                "name": "execute",
+                "description": execute["description"] as! String,
+                "input_schema": [
+                    "type": "object",
+                    "properties": ["task": ["type": "string", "description": "Clear, detailed description of what to do."]],
+                    "required": ["task"],
+                ] as [String: Any],
+            ])
+        }
+        return tools
     }
 
     /// OpenAI / Groq / Custom tool format
-    static func openAITools() -> [[String: Any]] {
-        return [[
-            "type": "function",
-            "function": [
-                "name": "execute",
-                "description": execute["description"] as! String,
-                "parameters": [
-                    "type": "object",
-                    "properties": [
-                        "task": [
-                            "type": "string",
-                            "description": "Clear, detailed description of what to do. Include all relevant context: names, content, platforms, quantities, etc."
-                        ]
-                    ],
-                    "required": ["task"]
-                ] as [String: Any]
-            ] as [String: Any]
-        ]]
+    @MainActor
+    static func openAITools(registry: NativeToolRegistry?, includeOpenClaw: Bool) -> [[String: Any]] {
+        var tools: [[String: Any]] = nativeToolDeclarations(registry: registry).map { decl in
+            [
+                "type": "function",
+                "function": [
+                    "name": decl["name"] as! String,
+                    "description": decl["description"] as! String,
+                    "parameters": decl["parameters"] as Any,
+                ] as [String: Any],
+            ]
+        }
+        if includeOpenClaw {
+            tools.append([
+                "type": "function",
+                "function": [
+                    "name": "execute",
+                    "description": execute["description"] as! String,
+                    "parameters": [
+                        "type": "object",
+                        "properties": ["task": ["type": "string", "description": "Clear, detailed description of what to do."]],
+                        "required": ["task"],
+                    ] as [String: Any],
+                ] as [String: Any],
+            ])
+        }
+        return tools
     }
 
     /// Gemini REST API tool format
-    static func geminiRESTTools() -> [[String: Any]] {
-        return [[
-            "functionDeclarations": allDeclarations()
-        ]]
+    @MainActor
+    static func geminiRESTTools(registry: NativeToolRegistry?, includeOpenClaw: Bool) -> [[String: Any]] {
+        var declarations = nativeToolDeclarations(registry: registry)
+        if includeOpenClaw {
+            declarations.append(execute)
+        }
+        return [["functionDeclarations": declarations]]
     }
 }

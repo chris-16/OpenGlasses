@@ -1,5 +1,6 @@
 import Foundation
 import AVFoundation
+import Combine
 import MWDATCore
 import MWDATCamera
 import UIKit
@@ -22,10 +23,16 @@ class CameraService: ObservableObject {
     private var photoContinuation: CheckedContinuation<Data, Error>?
 
     /// Whether camera permission has been granted (cached to avoid re-checking).
-    private var permissionGranted = false
+    var permissionGranted = false
 
     /// Callback for continuous video frames (used by Gemini Live mode)
     var onVideoFrame: ((UIImage) -> Void)?
+
+    /// Debug event callback for connection status logging
+    var onDebugEvent: ((String) -> Void)?
+
+    /// Combine publisher for video frames (used by recording/broadcast services).
+    let framePublisher = PassthroughSubject<UIImage, Never>()
 
     /// The most recent video frame captured from the glasses camera
     private(set) var latestFrame: UIImage?
@@ -262,6 +269,7 @@ class CameraService: ObservableObject {
                               frameCount, Int(image.size.width), Int(image.size.height))
                     }
                     self.onVideoFrame?(image)
+                    self.framePublisher.send(image)
                 } else {
                     if frameCount <= 3 {
                         NSLog("[Camera] Frame #%d: makeUIImage() returned nil", frameCount)
@@ -297,6 +305,13 @@ class CameraService: ObservableObject {
         guard let image = UIImage(data: data) else { return }
         UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
         print("📸 Photo saved to camera roll")
+    }
+
+    // MARK: - Audio Session Helpers
+
+    /// Restore audio session configuration for wake word detection after camera streaming.
+    func restoreAudioForWakeWord() {
+        // No-op: audio session management is handled by WakeWordService
     }
 }
 

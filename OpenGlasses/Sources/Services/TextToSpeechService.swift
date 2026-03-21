@@ -331,6 +331,18 @@ class TextToSpeechService: NSObject, ObservableObject, AVSpeechSynthesizerDelega
             self.speechContinuation = nil
         }
     }
+
+    // MARK: - Thinking Sound
+
+    /// Play a subtle sound while the AI is processing.
+    func startThinkingSound() {
+        // Placeholder — could play a gentle pulsing tone
+    }
+
+    /// Stop the thinking sound.
+    func stopThinkingSound() {
+        // Placeholder
+    }
 }
 
 // MARK: - AVAudioPlayerDelegate (ElevenLabs)

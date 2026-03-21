@@ -132,10 +132,15 @@ struct LivePreviewView: View {
                 }
             }
         }
-        .onReceive(appState.cameraService.framePublisher.throttle(for: .milliseconds(33), scheduler: DispatchQueue.main, latest: true)) { image in
-            currentFrame = image
-        }
         .onAppear {
+            // Subscribe to camera frames via callback
+            let previousCallback = appState.cameraService.onVideoFrame
+            appState.cameraService.onVideoFrame = { image in
+                previousCallback?(image)
+                Task { @MainActor in
+                    currentFrame = image
+                }
+            }
             startStreamIfNeeded()
         }
     }

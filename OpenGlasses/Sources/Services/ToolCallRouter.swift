@@ -5,6 +5,7 @@ import Foundation
 @MainActor
 class ToolCallRouter {
     private let bridge: OpenClawBridge
+    var nativeToolRouter: NativeToolRouter?
     private var inFlightTasks: [String: Task<Void, Never>] = [:]
 
     init(bridge: OpenClawBridge) {

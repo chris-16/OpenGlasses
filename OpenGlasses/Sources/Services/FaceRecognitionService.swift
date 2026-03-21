@@ -59,17 +59,18 @@ class FaceRecognitionService: ObservableObject {
         isActive = true
         frameCount = 0
 
-        frameSubscription = cameraService.framePublisher
-            .receive(on: DispatchQueue.global(qos: .userInitiated))
-            .sink { [weak self] image in
-                guard let self = self else { return }
-                Task { @MainActor in
-                    self.frameCount += 1
-                    if self.frameCount % self.processEveryNFrames == 0 && !self.processingFrame {
-                        self.processFrame(image)
-                    }
+        // Subscribe to camera frames via callback
+        let previousCallback = cameraService.onVideoFrame
+        cameraService.onVideoFrame = { [weak self] (image: UIImage) in
+            previousCallback?(image)
+            guard let self = self else { return }
+            Task { @MainActor in
+                self.frameCount += 1
+                if self.frameCount % self.processEveryNFrames == 0 && !self.processingFrame {
+                    self.processFrame(image)
                 }
             }
+        }
 
         print("👤 Face recognition started")
     }
