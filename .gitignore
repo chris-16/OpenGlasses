@@ -42,3 +42,6 @@ Carthage/Build/
 CLAUDE.md
 AGENTS.md
 impeccable-style-universal/
+
+# Credentials — contains Meta App ID and Client Token
+OpenGlasses/Info.plist
