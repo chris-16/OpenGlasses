@@ -873,6 +873,26 @@ struct Config {
         }
         setDisabledTools(disabled)
     }
+
+    // MARK: - Local Model Roles
+
+    /// Preferred local model for text conversation (e.g. "mlx-community/Qwen2.5-3B-Instruct-4bit").
+    static var localTextModelId: String {
+        UserDefaults.standard.string(forKey: "localTextModelId") ?? ""
+    }
+
+    static func setLocalTextModelId(_ id: String) {
+        UserDefaults.standard.set(id, forKey: "localTextModelId")
+    }
+
+    /// Preferred local model for vision/photo tasks (e.g. "mlx-community/SmolVLM2-2.2B-Instruct-mlx").
+    static var localVisionModelId: String {
+        UserDefaults.standard.string(forKey: "localVisionModelId") ?? ""
+    }
+
+    static func setLocalVisionModelId(_ id: String) {
+        UserDefaults.standard.set(id, forKey: "localVisionModelId")
+    }
 }
 
 // MARK: - App Mode Enum

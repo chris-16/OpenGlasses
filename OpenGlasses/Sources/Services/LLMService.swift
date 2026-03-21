@@ -814,9 +814,21 @@ class LLMService: ObservableObject {
             throw LLMError.missingAPIKey("Local LLM service not initialized")
         }
 
-        // Ensure model is loaded
-        if !localService.isModelLoaded || localService.loadedModelId != config.model {
-            try await localService.loadModel(config.model)
+        // Auto-swap: use vision model for photos, text model for conversation
+        let targetModelId: String
+        if imageData != nil, !Config.localVisionModelId.isEmpty {
+            targetModelId = Config.localVisionModelId
+            print("📷 Auto-swap: using vision model \(targetModelId)")
+        } else if !Config.localTextModelId.isEmpty {
+            targetModelId = Config.localTextModelId
+        } else {
+            targetModelId = config.model
+        }
+
+        // Load target model if different from current
+        if !localService.isModelLoaded || localService.loadedModelId != targetModelId {
+            print("🔄 Swapping local model to: \(targetModelId)")
+            try await localService.loadModel(targetModelId)
         }
 
         // Build tool instructions for the system prompt
