@@ -1,0 +1,466 @@
+import Foundation
+import UIKit
+
+/// Connection state for the OpenAI Realtime WebSocket.
+enum OpenAIRealtimeConnectionState: Equatable {
+    case disconnected
+    case connecting
+    case settingUp
+    case ready
+    case error(String)
+}
+
+/// WebSocket-based OpenAI Realtime API service.
+/// Sends/receives audio (PCM16 24kHz), sends images, handles tool calls,
+/// and supports automatic reconnection with exponential backoff.
+@MainActor
+class OpenAIRealtimeService: ObservableObject {
+    @Published var connectionState: OpenAIRealtimeConnectionState = .disconnected
+    @Published var isModelSpeaking: Bool = false
+    @Published var reconnecting: Bool = false
+
+    // Callbacks
+    var onAudioReceived: ((Data) -> Void)?
+    var onTurnComplete: (() -> Void)?
+    var onInterrupted: (() -> Void)?
+    var onDisconnected: ((String?) -> Void)?
+    var onInputTranscription: ((String) -> Void)?
+    var onOutputTranscription: ((String) -> Void)?
+    var onReconnected: (() -> Void)?
+
+    // Reconnection
+    private var intentionalDisconnect = false
+    private var reconnectAttempts = 0
+    private let maxReconnectAttempts = 10
+    private let maxBackoffSeconds: Double = 30
+    private var reconnectTask: Task<Void, Never>?
+
+    // Latency tracking
+    private var lastUserSpeechEnd: Date?
+    private var responseLatencyLogged = false
+
+    // WebSocket
+    private var webSocketTask: URLSessionWebSocketTask?
+    private var receiveTask: Task<Void, Never>?
+    private var connectContinuation: CheckedContinuation<Bool, Never>?
+    private let delegate = OpenAIWebSocketDelegate()
+    private var urlSession: URLSession!
+
+    // Send queue — keeps base64 encoding off the main thread
+    private let sendQueue = DispatchQueue(label: "openai.realtime.send", qos: .userInitiated)
+
+    // Session configuration
+    private var systemInstruction: String = ""
+    private var apiKey: String = ""
+    private var model: String = ""
+
+    // Track current response for interruption
+    private var currentResponseId: String?
+
+    init() {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 30
+        self.urlSession = URLSession(configuration: config, delegate: delegate, delegateQueue: nil)
+    }
+
+    /// Configure session parameters before connecting.
+    func configure(apiKey: String, model: String, systemInstruction: String) {
+        self.apiKey = apiKey
+        self.model = model
+        self.systemInstruction = systemInstruction
+    }
+
+    // MARK: - Connect / Disconnect
+
+    func connect() async -> Bool {
+        guard !apiKey.isEmpty else {
+            connectionState = .error("No OpenAI API key configured")
+            return false
+        }
+
+        let urlString = "wss://api.openai.com/v1/realtime?model=\(model)"
+        guard let url = URL(string: urlString) else {
+            connectionState = .error("Invalid model name")
+            return false
+        }
+
+        intentionalDisconnect = false
+        connectionState = .connecting
+
+        let result = await withCheckedContinuation { (continuation: CheckedContinuation<Bool, Never>) in
+            self.connectContinuation = continuation
+
+            self.delegate.onOpen = { [weak self] protocol_ in
+                guard let self else { return }
+                Task { @MainActor in
+                    self.connectionState = .settingUp
+                    self.startReceiving()
+                    // OpenAI sends session.created automatically, then we send session.update
+                }
+            }
+
+            self.delegate.onClose = { [weak self] code, reason in
+                guard let self else { return }
+                let reasonStr = reason.flatMap { String(data: $0, encoding: .utf8) } ?? "no reason"
+                Task { @MainActor in
+                    self.resolveConnect(success: false)
+                    self.connectionState = .disconnected
+                    self.isModelSpeaking = false
+                    let msg = "Connection closed (code \(code.rawValue): \(reasonStr))"
+                    self.onDisconnected?(msg)
+                    self.scheduleReconnect(reason: msg)
+                }
+            }
+
+            self.delegate.onError = { [weak self] error in
+                guard let self else { return }
+                let msg = error?.localizedDescription ?? "Unknown error"
+                Task { @MainActor in
+                    self.resolveConnect(success: false)
+                    self.connectionState = .error(msg)
+                    self.isModelSpeaking = false
+                    self.onDisconnected?(msg)
+                    self.scheduleReconnect(reason: msg)
+                }
+            }
+
+            // Create request with auth headers
+            var request = URLRequest(url: url)
+            request.setValue("Bearer \(self.apiKey)", forHTTPHeaderField: "Authorization")
+            request.setValue("realtime=v1", forHTTPHeaderField: "OpenAI-Beta")
+
+            self.webSocketTask = self.urlSession.webSocketTask(with: request)
+            self.webSocketTask?.resume()
+
+            // Timeout after 15 seconds
+            Task {
+                try? await Task.sleep(nanoseconds: 15_000_000_000)
+                await MainActor.run {
+                    self.resolveConnect(success: false)
+                    if self.connectionState == .connecting || self.connectionState == .settingUp {
+                        self.connectionState = .error("Connection timed out")
+                    }
+                }
+            }
+        }
+
+        return result
+    }
+
+    func disconnect() {
+        intentionalDisconnect = true
+        reconnectTask?.cancel()
+        reconnectTask = nil
+        reconnecting = false
+        receiveTask?.cancel()
+        receiveTask = nil
+        webSocketTask?.cancel(with: .normalClosure, reason: nil)
+        webSocketTask = nil
+        delegate.onOpen = nil
+        delegate.onClose = nil
+        delegate.onError = nil
+        onReconnected = nil
+        connectionState = .disconnected
+        isModelSpeaking = false
+        currentResponseId = nil
+        resolveConnect(success: false)
+    }
+
+    // MARK: - Send Audio
+
+    func sendAudio(data: Data) {
+        guard connectionState == .ready, let task = webSocketTask else { return }
+        sendQueue.async {
+            let base64 = data.base64EncodedString()
+            let json: [String: Any] = [
+                "type": "input_audio_buffer.append",
+                "audio": base64
+            ]
+            Self.sendJSONDirect(json, via: task)
+        }
+    }
+
+    // MARK: - Send Image (Vision)
+
+    func sendImage(image: UIImage, prompt: String? = nil) {
+        guard connectionState == .ready, let task = webSocketTask else { return }
+        sendQueue.async {
+            guard let jpegData = image.jpegData(compressionQuality: 0.5) else { return }
+            let base64 = jpegData.base64EncodedString()
+
+            var content: [[String: Any]] = [
+                [
+                    "type": "input_image",
+                    "image": base64
+                ]
+            ]
+            if let prompt {
+                content.insert(["type": "input_text", "text": prompt], at: 0)
+            }
+
+            let json: [String: Any] = [
+                "type": "conversation.item.create",
+                "item": [
+                    "type": "message",
+                    "role": "user",
+                    "content": content
+                ]
+            ]
+            Self.sendJSONDirect(json, via: task)
+            NSLog("[OpenAI RT] Sent image frame (%d KB)", jpegData.count / 1024)
+        }
+    }
+
+    // MARK: - Interruption
+
+    /// Cancel the current model response (client-side interrupt).
+    func cancelResponse() {
+        guard let task = webSocketTask else { return }
+        isModelSpeaking = false
+        onInterrupted?()
+        sendQueue.async {
+            let json: [String: Any] = ["type": "response.cancel"]
+            Self.sendJSONDirect(json, via: task)
+        }
+    }
+
+    // MARK: - Reconnection
+
+    private func scheduleReconnect(reason: String?) {
+        guard !intentionalDisconnect else { return }
+        guard reconnectAttempts < maxReconnectAttempts else {
+            connectionState = .error("Connection lost after \(maxReconnectAttempts) reconnect attempts")
+            reconnecting = false
+            return
+        }
+
+        reconnecting = true
+        reconnectAttempts += 1
+        let delay = min(pow(2.0, Double(reconnectAttempts - 1)), maxBackoffSeconds)
+        NSLog("[OpenAI RT] Reconnect attempt %d/%d in %.0fs", reconnectAttempts, maxReconnectAttempts, delay)
+
+        reconnectTask = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+            guard let self, !Task.isCancelled else { return }
+
+            self.receiveTask?.cancel()
+            self.receiveTask = nil
+            self.webSocketTask?.cancel(with: .normalClosure, reason: nil)
+            self.webSocketTask = nil
+
+            let success = await self.connect()
+            if success {
+                self.reconnectAttempts = 0
+                self.reconnecting = false
+                self.onReconnected?()
+            }
+        }
+    }
+
+    // MARK: - Private
+
+    private func resolveConnect(success: Bool) {
+        if let cont = connectContinuation {
+            connectContinuation = nil
+            cont.resume(returning: success)
+        }
+    }
+
+    private func sendSessionUpdate() {
+        let sessionConfig: [String: Any] = [
+            "type": "session.update",
+            "session": [
+                "modalities": ["text", "audio"],
+                "instructions": systemInstruction,
+                "input_audio_format": "pcm16",
+                "output_audio_format": "pcm16",
+                "input_audio_transcription": [
+                    "model": "gpt-4o-mini-transcribe"
+                ],
+                "turn_detection": [
+                    "type": "server_vad",
+                    "threshold": 0.5,
+                    "prefix_padding_ms": 300,
+                    "silence_duration_ms": 500
+                ]
+            ]
+        ]
+        sendJSON(sessionConfig)
+        NSLog("[OpenAI RT] Sent session.update")
+    }
+
+    private func sendJSON(_ json: [String: Any]) {
+        guard let data = try? JSONSerialization.data(withJSONObject: json),
+              let string = String(data: data, encoding: .utf8) else {
+            return
+        }
+        webSocketTask?.send(.string(string)) { _ in }
+    }
+
+    private static nonisolated func sendJSONDirect(_ json: [String: Any], via task: URLSessionWebSocketTask) {
+        guard let data = try? JSONSerialization.data(withJSONObject: json),
+              let string = String(data: data, encoding: .utf8) else {
+            return
+        }
+        task.send(.string(string)) { error in
+            if let error {
+                NSLog("[OpenAI RT] WebSocket send error: %@", error.localizedDescription)
+            }
+        }
+    }
+
+    private func startReceiving() {
+        receiveTask = Task { [weak self] in
+            guard let self else { return }
+            while !Task.isCancelled {
+                guard let task = self.webSocketTask else { break }
+                do {
+                    let message = try await task.receive()
+                    switch message {
+                    case .string(let text):
+                        await self.handleMessage(text)
+                    case .data(let data):
+                        if let text = String(data: data, encoding: .utf8) {
+                            await self.handleMessage(text)
+                        }
+                    @unknown default:
+                        break
+                    }
+                } catch {
+                    if !Task.isCancelled {
+                        let reason = error.localizedDescription
+                        await MainActor.run {
+                            self.resolveConnect(success: false)
+                            self.connectionState = .disconnected
+                            self.isModelSpeaking = false
+                            self.onDisconnected?(reason)
+                            self.scheduleReconnect(reason: reason)
+                        }
+                    }
+                    break
+                }
+            }
+        }
+    }
+
+    private func handleMessage(_ text: String) async {
+        guard let data = text.data(using: .utf8),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let type = json["type"] as? String else {
+            return
+        }
+
+        switch type {
+        case "session.created":
+            NSLog("[OpenAI RT] Session created")
+            // Now send our session configuration
+            sendSessionUpdate()
+
+        case "session.updated":
+            NSLog("[OpenAI RT] Session configured — ready")
+            connectionState = .ready
+            resolveConnect(success: true)
+
+        case "response.audio.delta":
+            // Model audio chunk
+            if let delta = json["delta"] as? String,
+               let audioData = Data(base64Encoded: delta) {
+                if !isModelSpeaking {
+                    isModelSpeaking = true
+                    if let speechEnd = lastUserSpeechEnd, !responseLatencyLogged {
+                        let latency = Date().timeIntervalSince(speechEnd)
+                        NSLog("[Latency] %.0fms (user speech end -> first audio)", latency * 1000)
+                        responseLatencyLogged = true
+                    }
+                }
+                if let responseId = json["response_id"] as? String {
+                    currentResponseId = responseId
+                }
+                onAudioReceived?(audioData)
+            }
+
+        case "response.audio_transcript.delta":
+            if let delta = json["delta"] as? String {
+                onOutputTranscription?(delta)
+            }
+
+        case "response.done":
+            isModelSpeaking = false
+            currentResponseId = nil
+            responseLatencyLogged = false
+            onTurnComplete?()
+
+        case "input_audio_buffer.speech_started":
+            // User started speaking — interrupt model if it's responding
+            if isModelSpeaking {
+                NSLog("[OpenAI RT] Server VAD: user interrupted model")
+                cancelResponse()
+            }
+            lastUserSpeechEnd = nil
+
+        case "input_audio_buffer.speech_stopped":
+            lastUserSpeechEnd = Date()
+
+        case "conversation.item.input_audio_transcription.completed":
+            if let transcript = json["transcript"] as? String, !transcript.isEmpty {
+                NSLog("[OpenAI RT] You: %@", transcript)
+                onInputTranscription?(transcript)
+            }
+
+        case "error":
+            if let error = json["error"] as? [String: Any],
+               let message = error["message"] as? String {
+                NSLog("[OpenAI RT] Error: %@", message)
+                connectionState = .error(message)
+            }
+
+        case "rate_limits.updated":
+            break // Ignore rate limit info
+
+        case "response.created", "response.output_item.added",
+             "response.content_part.added", "response.content_part.done",
+             "response.output_item.done", "response.audio.done",
+             "response.audio_transcript.done", "conversation.item.created",
+             "input_audio_buffer.committed", "input_audio_buffer.cleared":
+            break // Expected events, no action needed
+
+        default:
+            NSLog("[OpenAI RT] Unhandled event: %@", type)
+        }
+    }
+}
+
+// MARK: - WebSocket Delegate
+
+private class OpenAIWebSocketDelegate: NSObject, URLSessionWebSocketDelegate {
+    var onOpen: ((String?) -> Void)?
+    var onClose: ((URLSessionWebSocketTask.CloseCode, Data?) -> Void)?
+    var onError: ((Error?) -> Void)?
+
+    func urlSession(
+        _ session: URLSession,
+        webSocketTask: URLSessionWebSocketTask,
+        didOpenWithProtocol protocol: String?
+    ) {
+        onOpen?(`protocol`)
+    }
+
+    func urlSession(
+        _ session: URLSession,
+        webSocketTask: URLSessionWebSocketTask,
+        didCloseWith closeCode: URLSessionWebSocketTask.CloseCode,
+        reason: Data?
+    ) {
+        onClose?(closeCode, reason)
+    }
+
+    func urlSession(
+        _ session: URLSession,
+        task: URLSessionTask,
+        didCompleteWithError error: Error?
+    ) {
+        if let error {
+            onError?(error)
+        }
+    }
+}

@@ -11,6 +11,7 @@ struct MainView: View {
     @State private var showSettings = false
     @State private var showModelPicker = false
     @State private var showPreview = false
+    @State private var showPersonaPicker = false
     @State private var showOnboarding = Config.needsOnboarding
 
     var body: some View {
@@ -64,7 +65,8 @@ struct MainView: View {
                     openAISession: openAISession,
                     showSettings: $showSettings,
                     showModelPicker: $showModelPicker,
-                    showPreview: $showPreview
+                    showPreview: $showPreview,
+                    showPersonaPicker: $showPersonaPicker
                 )
             }
 
@@ -87,6 +89,9 @@ struct MainView: View {
         }
         .sheet(isPresented: $showModelPicker) {
             ModelPickerSheet(appState: appState)
+        }
+        .sheet(isPresented: $showPersonaPicker) {
+            PersonaPickerSheet(appState: appState)
         }
         .fullScreenCover(isPresented: $showPreview) {
             LivePreviewView()

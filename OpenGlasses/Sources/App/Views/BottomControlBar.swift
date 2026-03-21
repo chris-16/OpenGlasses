@@ -1,8 +1,7 @@
 import SwiftUI
 
-/// Bottom control bar with circular action buttons in a stable 6-slot layout.
-/// Button positions never shift — unavailable slots are hidden but reserve space.
-/// Layout: [Settings] [Model] — Spacer — [Camera] [Hero] — Spacer — [Preview] [Mode]
+/// Bottom control bar with circular action buttons spanning the full width.
+/// Layout: [Settings] [Camera] [🎤 Hero] [Preview] [Model] [Persona]
 struct BottomControlBar: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var session: GeminiLiveSessionManager
@@ -12,6 +11,7 @@ struct BottomControlBar: View {
     @Binding var showSettings: Bool
     @Binding var showModelPicker: Bool
     @Binding var showPreview: Bool
+    @Binding var showPersonaPicker: Bool
 
     private var isRealtime: Bool { appState.currentMode.isRealtime }
     private var isGemini: Bool { appState.currentMode == .geminiLive }
@@ -39,45 +39,44 @@ struct BottomControlBar: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            // Left group: Settings + Model
-            HStack(spacing: 12) {
-                CircleButton(icon: "gearshape", size: 40, label: "Settings") {
-                    showSettings = true
-                }
-                CircleButton(icon: "brain", size: 40, label: "Switch Model") {
-                    showModelPicker = true
-                }
+            // Slot 1: Settings
+            CircleButton(icon: "gearshape", size: 38, label: "Settings") {
+                showSettings = true
             }
             .frame(maxWidth: .infinity)
 
-            // Center group: Camera + Hero
-            HStack(spacing: 12) {
-                cameraButton
-                heroButton
+            // Slot 2: Camera / Connect
+            cameraButton
+                .frame(maxWidth: .infinity)
+
+            // Slot 3: Hero — mic or session toggle (largest)
+            heroButton
+                .frame(maxWidth: .infinity)
+
+            // Slot 4: Preview (dimmed when no glasses)
+            CircleButton(
+                icon: "eye",
+                size: 38,
+                isActive: appState.videoRecorder.isRecording,
+                isDisabled: !previewVisible,
+                label: previewVisible ? "Live Preview" : "No glasses"
+            ) {
+                if previewVisible { showPreview = true }
             }
+            .opacity(previewVisible ? 1 : 0.3)
+            .frame(maxWidth: .infinity)
 
-            // Right group: Preview + Mode (mirrors left group width)
-            HStack(spacing: 12) {
-                CircleButton(
-                    icon: "eye",
-                    size: 40,
-                    isActive: appState.videoRecorder.isRecording,
-                    label: "Live Preview"
-                ) {
-                    showPreview = true
-                }
-                .opacity(previewVisible ? 1 : 0)
-                .disabled(!previewVisible)
-                .accessibilityHidden(!previewVisible)
-
-                modeButton
-                    .opacity(modeVisible ? 1 : 0)
-                    .disabled(!modeVisible)
-                    .accessibilityHidden(!modeVisible)
+            // Slot 5: Model picker
+            CircleButton(icon: "brain", size: 38, label: "Switch Model") {
+                showModelPicker = true
             }
             .frame(maxWidth: .infinity)
+
+            // Slot 6: Persona
+            personaButton
+                .frame(maxWidth: .infinity)
         }
-        .padding(.horizontal, 16)
+        .padding(.horizontal, 12)
         .padding(.vertical, 12)
         .background(
             Rectangle()
@@ -100,7 +99,7 @@ struct BottomControlBar: View {
         if !appState.isConnected {
             CircleButton(
                 icon: "camera.fill",
-                size: 48,
+                size: 38,
                 label: "Connect Glasses"
             ) {
                 Task { await appState.glassesService.connect() }
@@ -109,7 +108,7 @@ struct BottomControlBar: View {
         } else if isRealtime {
             CircleButton(
                 icon: "video.fill",
-                size: 48,
+                size: 38,
                 isActive: appState.cameraService.isStreaming,
                 isDisabled: !realtimeSessionActive,
                 label: appState.cameraService.isStreaming ? "Camera Streaming" : "Start Camera"
@@ -127,7 +126,7 @@ struct BottomControlBar: View {
         } else {
             CircleButton(
                 icon: "camera.fill",
-                size: 48,
+                size: 38,
                 isActive: appState.cameraService.isCaptureInProgress,
                 isDisabled: appState.cameraService.isCaptureInProgress || photoDisabledForLocalModel,
                 label: photoDisabledForLocalModel ? "Photos not available (text-only model)" : "Take Photo"
@@ -190,6 +189,21 @@ struct BottomControlBar: View {
                     }
                 }
             }
+        }
+    }
+
+    @ViewBuilder
+    private var personaButton: some View {
+        let activePersona = appState.activePersona
+        let personaCount = Config.enabledPersonas.count
+        CircleButton(
+            icon: "person.2",
+            size: 38,
+            isActive: activePersona != nil,
+            badge: personaCount > 1 ? "\(personaCount)" : nil,
+            label: activePersona != nil ? "Active: \(activePersona!.name)" : "Personas"
+        ) {
+            showPersonaPicker = true
         }
     }
 

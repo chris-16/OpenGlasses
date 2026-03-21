@@ -68,6 +68,7 @@
 		A8A8A8A8A8A8A8A8A8A8A8A8 /* BarcodeScannerTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8B8B8B8B8B8B8B8B8B8B8B8 /* BarcodeScannerTool.swift */; };
 		A9A9A9A9A9A9A9A9A9A9A9A9 /* LiveTranslationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9B9B9B9B9B9B9B9B9B9B9B9 /* LiveTranslationService.swift */; };
 		AAAAAAAAAAAAAAAAAAAAAAAA /* LiveTranslationTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBBBBBBBBBBBBBBBBBBBBBB /* LiveTranslationTool.swift */; };
+		ACACACACACACACACACACACAC /* PersonaPickerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCBCBCBCBCBCBCBCBCBCBCBC /* PersonaPickerSheet.swift */; };
 		D476884067774F4102608A82 /* FrameThrottler.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7E25E4491B13CEDF14D4364 /* FrameThrottler.swift */; };
 		E0D62BE69472F32DE3DB600F /* OpenClawBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92A74F270CBABDF72C72C5BD /* OpenClawBridge.swift */; };
 		E547F4974B491D0B9156FD8F /* LocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9886D8FB33DA06C125BEBEBA /* LocationService.swift */; };
@@ -165,6 +166,7 @@
 		B8B8B8B8B8B8B8B8B8B8B8B8 /* BarcodeScannerTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeScannerTool.swift; sourceTree = "<group>"; };
 		B9B9B9B9B9B9B9B9B9B9B9B9 /* LiveTranslationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveTranslationService.swift; sourceTree = "<group>"; };
 		BBBBBBBBBBBBBBBBBBBBBBBB /* LiveTranslationTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveTranslationTool.swift; sourceTree = "<group>"; };
+		BCBCBCBCBCBCBCBCBCBCBCBC /* PersonaPickerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonaPickerSheet.swift; sourceTree = "<group>"; };
 		3B6692EEA65ADB1BD263FEFE /* LivePreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LivePreviewView.swift; sourceTree = "<group>"; };
 		45E3B3049C0DE740FA37ABE1 /* intro.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; path = intro.mp4; sourceTree = "<group>"; };
 		4EB1758883EBE09AD50C9BEB /* GeminiLiveAudioManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeminiLiveAudioManager.swift; sourceTree = "<group>"; };
@@ -324,6 +326,7 @@
 				F2A3B4C5D6E7F8A9B0C1D2E3 /* NetworkMonitorView.swift */,
 				D0E1F2A3B4C5D6E7F8A9B0C1 /* LocalModelManagerView.swift */,
 				B7B7B7B7B7B7B7B7B7B7B7B7 /* MCPServersView.swift */,
+				BCBCBCBCBCBCBCBCBCBCBCBC /* PersonaPickerSheet.swift */,
 				E2F3A4B5C6D7E8F9A0B1C2D3 /* PersonasView.swift */,
 				8BAB04141EE25C5FE20E591C /* StatusIndicator.swift */,
 				6E1A21659693E4ECCA07AC67 /* TranscriptOverlay.swift */,
@@ -617,6 +620,7 @@
 				A8A8A8A8A8A8A8A8A8A8A8A8 /* BarcodeScannerTool.swift in Sources */,
 				A9A9A9A9A9A9A9A9A9A9A9A9 /* LiveTranslationService.swift in Sources */,
 				AAAAAAAAAAAAAAAAAAAAAAAA /* LiveTranslationTool.swift in Sources */,
+				ACACACACACACACACACACACAC /* PersonaPickerSheet.swift in Sources */,
 				A1C3E5F7B9D2A4C6E8F0B1D3 /* OnboardingOverlay.swift in Sources */,
 				C3E5A7B9D1F2C4E6A8B0D2F4 /* ServicesSettingsView.swift in Sources */,
 				9FC6BD9F7F9FD1EF36DAFA00 /* StatusIndicator.swift in Sources */,
