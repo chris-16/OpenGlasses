@@ -228,6 +228,7 @@ class AppState: ObservableObject {
     let transcriptionService = TranscriptionService()
     let llmService = LLMService()
     let localLLMService = LocalLLMService()
+    let mcpClient = MCPClient()
     let speechService = TextToSpeechService()
     let cameraService = CameraService()
     let videoRecorder = VideoRecordingService()
@@ -322,6 +323,7 @@ class AppState: ObservableObject {
 
         // Wire native tool router to LLM service and Gemini Live
         llmService.nativeToolRouter = nativeToolRouter
+        nativeToolRouter.mcpClient = mcpClient
         llmService.localLLMService = localLLMService
         geminiLiveSession.nativeToolRouter = nativeToolRouter
 

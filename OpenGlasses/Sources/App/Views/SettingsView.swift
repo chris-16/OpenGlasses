@@ -168,6 +168,13 @@ struct SettingsView: View {
                     }
 
                     NavigationLink {
+                        MCPServersView()
+                            .environmentObject(appState)
+                    } label: {
+                        Label("MCP Servers", systemImage: "server.rack")
+                    }
+
+                    NavigationLink {
                         NetworkMonitorView()
                     } label: {
                         Label("Network Activity", systemImage: "antenna.radiowaves.left.and.right")

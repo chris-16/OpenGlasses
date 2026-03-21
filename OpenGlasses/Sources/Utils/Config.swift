@@ -771,6 +771,22 @@ struct Config {
         UserDefaults.standard.set(bitrate, forKey: "recordingBitrate")
     }
 
+    // MARK: - MCP Servers
+
+    static var mcpServers: [MCPServerConfig] {
+        guard let data = UserDefaults.standard.data(forKey: "mcpServers"),
+              let servers = try? JSONDecoder().decode([MCPServerConfig].self, from: data) else {
+            return []
+        }
+        return servers
+    }
+
+    static func setMCPServers(_ servers: [MCPServerConfig]) {
+        if let data = try? JSONEncoder().encode(servers) {
+            UserDefaults.standard.set(data, forKey: "mcpServers")
+        }
+    }
+
     // MARK: - Home Assistant
 
     static var homeAssistantURL: String {

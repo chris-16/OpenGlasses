@@ -1,0 +1,203 @@
+import SwiftUI
+
+/// Manage MCP (Model Context Protocol) server connections.
+/// Add servers by URL, discover their tools, enable/disable.
+struct MCPServersView: View {
+    @EnvironmentObject var appState: AppState
+    @State private var servers: [MCPServerConfig] = Config.mcpServers
+    @State private var showAddSheet = false
+    @State private var discoveredCount: Int = 0
+    @State private var isDiscovering = false
+
+    var body: some View {
+        List {
+            // MARK: Servers
+            Section {
+                if servers.isEmpty {
+                    Text("No MCP servers configured. Add one to connect external tools.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(servers) { server in
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                HStack(spacing: 6) {
+                                    Text(server.label)
+                                        .foregroundStyle(.primary)
+                                        .lineLimit(1)
+                                    Circle()
+                                        .fill(server.enabled ? .green : .gray)
+                                        .frame(width: 8, height: 8)
+                                }
+                                Text(server.url)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(1)
+                            }
+                            Spacer()
+                            Toggle("", isOn: Binding(
+                                get: { server.enabled },
+                                set: { enabled in
+                                    if let idx = servers.firstIndex(where: { $0.id == server.id }) {
+                                        servers[idx].enabled = enabled
+                                        Config.setMCPServers(servers)
+                                    }
+                                }
+                            ))
+                            .labelsHidden()
+                        }
+                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                            Button(role: .destructive) {
+                                servers.removeAll { $0.id == server.id }
+                                Config.setMCPServers(servers)
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
+                    }
+                }
+            } header: {
+                Text("MCP Servers")
+            } footer: {
+                Text("MCP servers expose tools the AI can call. Popular servers: Home Assistant, Notion, GitHub, Slack, and more.")
+            }
+
+            // MARK: Discover
+            if !servers.filter(\.enabled).isEmpty {
+                Section {
+                    Button {
+                        discover()
+                    } label: {
+                        HStack {
+                            if isDiscovering {
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                                Text("Discovering…")
+                            } else {
+                                Image(systemName: "magnifyingglass")
+                                Text("Discover Tools")
+                                if discoveredCount > 0 {
+                                    Spacer()
+                                    Text("\(discoveredCount) tools found")
+                                        .font(.footnote)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                        }
+                    }
+                    .disabled(isDiscovering)
+                } footer: {
+                    Text("Queries all enabled servers for available tools. Discovered tools are automatically available to the AI.")
+                }
+            }
+
+            // MARK: Info
+            Section {
+                VStack(alignment: .leading, spacing: 8) {
+                    Label("What is MCP?", systemImage: "info.circle")
+                        .font(.footnote.weight(.medium))
+                    Text("Model Context Protocol is an open standard for AI tool servers. Any MCP-compatible server can be connected — the app discovers its tools automatically.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Text("Example: connect your Home Assistant MCP server and the AI can control any HA device via voice.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+        .navigationTitle("MCP Servers")
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    showAddSheet = true
+                } label: {
+                    Image(systemName: "plus")
+                }
+            }
+        }
+        .sheet(isPresented: $showAddSheet) {
+            MCPServerEditorView { newServer in
+                servers.append(newServer)
+                Config.setMCPServers(servers)
+            }
+        }
+    }
+
+    private func discover() {
+        isDiscovering = true
+        Task {
+            await appState.mcpClient.discoverAllTools()
+            discoveredCount = appState.mcpClient.discoveredTools.count
+            isDiscovering = false
+        }
+    }
+}
+
+// MARK: - Editor
+
+struct MCPServerEditorView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    let onSave: (MCPServerConfig) -> Void
+
+    @State private var label = ""
+    @State private var url = ""
+    @State private var authHeader = ""
+    @State private var authValue = ""
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    TextField("Label (e.g. Home Assistant)", text: $label)
+                    TextField("Server URL", text: $url)
+                        .autocorrectionDisabled()
+                        .textInputAutocapitalization(.never)
+                        .keyboardType(.URL)
+                } header: {
+                    Text("Server")
+                } footer: {
+                    Text("The MCP endpoint URL, e.g. http://192.168.1.100:8000/mcp")
+                }
+
+                Section {
+                    TextField("Header name (e.g. Authorization)", text: $authHeader)
+                        .autocorrectionDisabled()
+                        .textInputAutocapitalization(.never)
+                    SecureField("Header value (e.g. Bearer xxx)", text: $authValue)
+                        .autocorrectionDisabled()
+                        .textInputAutocapitalization(.never)
+                } header: {
+                    Text("Authentication (Optional)")
+                } footer: {
+                    Text("Most MCP servers require a Bearer token or API key in the Authorization header.")
+                }
+            }
+            .navigationTitle("Add MCP Server")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Add") {
+                        var headers: [String: String] = [:]
+                        if !authHeader.isEmpty && !authValue.isEmpty {
+                            headers[authHeader] = authValue
+                        }
+                        let server = MCPServerConfig(
+                            id: UUID().uuidString,
+                            label: label.trimmingCharacters(in: .whitespaces),
+                            url: url.trimmingCharacters(in: .whitespaces),
+                            headers: headers,
+                            enabled: true
+                        )
+                        onSave(server)
+                        dismiss()
+                    }
+                    .disabled(label.isEmpty || url.isEmpty)
+                }
+            }
+        }
+    }
+}
