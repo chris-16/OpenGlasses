@@ -52,14 +52,25 @@ class WakeWordService: NSObject, ObservableObject {
         speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US"))
     }
 
+    /// Force reconfigure audio session (e.g. when mic source changes)
+    func reconfigureAudioSession() {
+        audioSessionConfigured = false
+        configureAudioSession()
+    }
+
     /// Configure the shared audio session once — call before first use
     func configureAudioSession() {
         guard !audioSessionConfigured else { return }
         do {
             let audioSession = AVAudioSession.sharedInstance()
-            try audioSession.setCategory(.playAndRecord, mode: .measurement, options: [.mixWithOthers, .allowBluetoothHFP, .defaultToSpeaker])
+            let useGlassesMic = Config.useGlassesMicForWakeWord
+            let options: AVAudioSession.CategoryOptions = useGlassesMic
+                ? [.mixWithOthers, .allowBluetoothHFP, .defaultToSpeaker]
+                : [.mixWithOthers, .defaultToSpeaker]
+            try audioSession.setCategory(.playAndRecord, mode: .measurement, options: options)
             try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
             audioSessionConfigured = true
+            print("🎤 Mic source: \(useGlassesMic ? "glasses (Bluetooth)" : "phone (built-in)")")
 
             let route = audioSession.currentRoute
             for input in route.inputs {

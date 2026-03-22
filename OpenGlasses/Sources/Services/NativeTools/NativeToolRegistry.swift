@@ -79,9 +79,8 @@ final class NativeToolRegistry {
         register(ObjectMemoryTool(locationService: locationService))
         register(ContextualNoteTool(locationService: locationService))
         register(SocialContextTool())
-        if !Config.homeAssistantURL.isEmpty {
-            register(HomeAssistantTool())
-        }
+        // Always register — tool checks config at execution time
+        register(HomeAssistantTool())
 
         // Tier 5: Barcode scanning, live translation
         if let camera = cameraService {

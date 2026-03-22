@@ -200,6 +200,7 @@ struct ModelFormView: View {
         case .zai: return "Z.ai subscription — OpenAI-compatible API"
         case .qwen: return "Coding Plan subscription — coding-intl.dashscope.aliyuncs.com"
         case .minimax: return "MiniMax subscription — platform.minimaxi.com"
+        case .openrouter: return "500+ models with one API key — openrouter.ai/keys"
         case .custom: return "Any OpenAI-compatible API endpoint"
         case .local: return "On-device inference — no internet needed"
         }

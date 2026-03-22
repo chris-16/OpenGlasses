@@ -19,7 +19,7 @@ enum ModelFetcher {
             return await fetchGemini(apiKey: apiKey)
         case .qwen:
             return await fetchQwen(apiKey: apiKey, baseURL: baseURL)
-        case .openai, .groq, .zai, .minimax, .custom:
+        case .openai, .groq, .zai, .minimax, .openrouter, .custom:
             return await fetchOpenAICompatible(apiKey: apiKey, baseURL: baseURL)
         case .local:
             return []  // Local models are managed via LocalModelManagerView

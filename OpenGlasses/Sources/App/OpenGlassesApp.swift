@@ -923,6 +923,18 @@ class AppState: ObservableObject {
         }
     }
 
+    /// Start listening directly — no wake word needed.
+    /// Called from Action Button intent or manual mic button.
+    /// Transcription will check for persona names in the spoken text.
+    func startDirectTranscription() {
+        print("🎤 Action Button: starting direct transcription (no wake word)")
+        Task {
+            // Configure audio (uses glasses mic if connected, phone mic otherwise)
+            wakeWordService.configureAudioSession()
+            await handleWakeWordDetected()
+        }
+    }
+
     func handleWakeWordDetected() async {
         print("🎤 Wake word detected! Starting conversation...")
         inConversation = true
@@ -975,6 +987,9 @@ class AppState: ObservableObject {
         speechService.playEndListeningTone()
         print("📝 Transcription: \(text)")
 
+        // Will be updated below if persona detected in text
+        var query = text
+
         // Intent classification — filter bystander/filler speech
         if intentClassifier.isEnabled && !isPhotoCommand(text) && !isStopCommand(text) && !isGoodbyeCommand(text) {
             let intent = await intentClassifier.classify(transcript: text)
@@ -987,6 +1002,33 @@ class AppState: ObservableObject {
                     await returnToWakeWord()
                 }
                 return
+            }
+        }
+
+        // Check for persona names in the transcription (for Action Button / push-to-talk mode)
+        // e.g. "Hey Claude, what's the weather" → activate Claude persona, strip prefix
+        if activePersona == nil {
+            let lower = text.lowercased()
+            for persona in Config.enabledPersonas {
+                for phrase in persona.allPhrases {
+                    if lower.hasPrefix(phrase) || lower.contains(phrase) {
+                        activePersona = persona
+                        Config.setActiveModelId(persona.modelId)
+                        Config.setActivePresetId(persona.presetId)
+                        llmService.refreshActiveModel()
+                        print("🎭 Persona detected in transcription: \(persona.name)")
+                        // Strip the wake phrase from the query
+                        if let range = lower.range(of: phrase) {
+                            query = String(text[range.upperBound...])
+                                .trimmingCharacters(in: .whitespacesAndNewlines)
+                                .trimmingCharacters(in: CharacterSet(charactersIn: ","))
+                                .trimmingCharacters(in: .whitespaces)
+                        }
+                        if query.isEmpty { query = text }
+                        break
+                    }
+                }
+                if activePersona != nil { break }
             }
         }
 
@@ -1034,10 +1076,10 @@ class AppState: ObservableObject {
                 // Restore audio for wake word after camera capture (camera reconfigures for Bluetooth)
                 cameraService.restoreAudioForWakeWord()
                 cameraService.saveToPhotoLibrary(photoData)
-                print("📸 Photo saved, sending to LLM with prompt: \(text)")
+                print("📸 Photo saved, sending to LLM with prompt: \(query)")
 
                 let rawResponse = try await llmService.sendMessage(
-                    text,
+                    query,
                     locationContext: locationService.locationContext,
                     imageData: photoData,
                     memoryContext: Config.userMemoryEnabled ? userMemory.systemPromptContext() : nil
@@ -1080,7 +1122,7 @@ class AppState: ObservableObject {
                 print("🖼️ Reusing live camera frame for \(llmService.activeModelName)")
             }
             let rawResponse = try await llmService.sendMessage(
-                text,
+                query,
                 locationContext: locationService.locationContext,
                 imageData: imageData,
                 memoryContext: Config.userMemoryEnabled ? userMemory.systemPromptContext() : nil

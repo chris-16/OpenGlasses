@@ -16,6 +16,7 @@ struct SettingsView: View {
 
     // Privacy filter
     @State private var privacyFilterEnabled = Config.privacyFilterEnabled
+    @State private var useGlassesMicForWakeWord = Config.useGlassesMicForWakeWord
 
     // Service settings (owned here, bound to ServicesSettingsView)
     @State private var elevenLabsKeyInput = Config.elevenLabsAPIKey
@@ -137,13 +138,14 @@ struct SettingsView: View {
                     Text("Intent classifier ignores nearby conversations so only your voice triggers a response. Memory saves facts you share (your name, preferences) across sessions. History keeps previous conversations for context.")
                 }
 
-                // MARK: Privacy
+                // MARK: Hardware
                 Section {
+                    Toggle("Listen via Glasses Mic", isOn: $useGlassesMicForWakeWord)
                     Toggle("Blur Bystander Faces", isOn: $privacyFilterEnabled)
                 } header: {
-                    Text("Privacy")
+                    Text("Hardware & Privacy")
                 } footer: {
-                    Text("Automatically blurs faces of people nearby in recordings and streams.")
+                    Text("Glasses mic enables true hands-free (phone in pocket) but drains glasses battery faster. Phone mic saves glasses battery but requires the phone nearby. Requires restart to take effect.")
                 }
 
                 // MARK: Transparency
@@ -159,6 +161,18 @@ struct SettingsView: View {
                             .environmentObject(appState)
                     } label: {
                         Label("Custom Tools", systemImage: "hammer")
+                    }
+
+                    NavigationLink {
+                        ConversationHistoryView()
+                            .environmentObject(appState)
+                    } label: {
+                        HStack {
+                            Label("Conversation History", systemImage: "bubble.left.and.bubble.right")
+                            Spacer()
+                            Text("\(appState.conversationStore.threads.count)")
+                                .foregroundStyle(.secondary)
+                        }
                     }
 
                     NavigationLink {
@@ -256,6 +270,7 @@ struct SettingsView: View {
         Config.setPerplexityAPIKey(perplexityKeyInput)
         Config.setPrivacyFilterEnabled(privacyFilterEnabled)
         appState.privacyFilter.isEnabled = privacyFilterEnabled
+        Config.setUseGlassesMicForWakeWord(useGlassesMicForWakeWord)
 
         Config.setEmotionAwareTTSEnabled(emotionAwareTTSEnabled)
 

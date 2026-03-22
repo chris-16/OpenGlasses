@@ -49,9 +49,19 @@ final class HomeKitTool: NativeTool, @unchecked Sendable {
             return "HomeKit access not authorized. Please enable Home Data for OpenGlasses in Settings → Privacy & Security → HomeKit."
         }
 
-        guard let home = homeManager.homes.first else {
-            let homeCount = homeManager.homes.count
-            return "No HomeKit home found (homes: \(homeCount)). Open the Apple Home app and make sure you have a home set up with accessories."
+        // Homes may not have loaded yet — retry a few times
+        var home: HMHome? = homeManager.homes.first
+        if home == nil {
+            for attempt in 1...3 {
+                print("🏠 No homes yet (attempt \(attempt)/3), waiting...")
+                try? await Task.sleep(nanoseconds: 2_000_000_000)
+                home = homeManager.homes.first
+                if home != nil { break }
+            }
+        }
+        guard let home else {
+            print("🏠 No homes found. Auth: \(homeManager.authorizationStatus.rawValue)")
+            return "No HomeKit home found. Open the Apple Home app and make sure you have a home set up with accessories."
         }
 
         let deviceName = (args["device"] as? String)?.lowercased() ?? ""
@@ -269,11 +279,19 @@ private class HomeKitManager: NSObject, HMHomeManagerDelegate {
 
     override init() {
         super.init()
-        // Create the manager immediately — delegate callback will fire when homes are loaded
-        let manager = HMHomeManager()
-        manager.delegate = self
-        self.homeManager = manager
-        print("🏠 HomeKit manager initialized")
+        // HMHomeManager MUST be created on the main thread
+        if Thread.isMainThread {
+            let manager = HMHomeManager()
+            manager.delegate = self
+            self.homeManager = manager
+        } else {
+            DispatchQueue.main.sync {
+                let manager = HMHomeManager()
+                manager.delegate = self
+                self.homeManager = manager
+            }
+        }
+        print("🏠 HomeKit manager initialized (main thread: \(Thread.isMainThread))")
     }
 
     func ensureReady() async {

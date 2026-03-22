@@ -335,13 +335,76 @@ class TextToSpeechService: NSObject, ObservableObject, AVSpeechSynthesizerDelega
     // MARK: - Thinking Sound
 
     /// Play a subtle sound while the AI is processing.
+    private var thinkingPlayer: AVAudioPlayer?
+    private var thinkingTimer: Timer?
+
     func startThinkingSound() {
-        // Placeholder — could play a gentle pulsing tone
+        stopThinkingSound()
+
+        // Generate a short, gentle "bloop" tone (sine wave at 440Hz, 0.15s, low volume)
+        let sampleRate: Double = 44100
+        let duration: Double = 0.15
+        let frequency: Double = 440
+        let amplitude: Float = 0.08
+        let frameCount = Int(sampleRate * duration)
+
+        var samples = [Float](repeating: 0, count: frameCount)
+        for i in 0..<frameCount {
+            let t = Float(i) / Float(sampleRate)
+            // Sine wave with fade in/out envelope
+            let envelope = sin(Float.pi * t / Float(duration))
+            samples[i] = amplitude * envelope * sin(2 * Float.pi * Float(frequency) * t)
+        }
+
+        // Convert to 16-bit PCM WAV
+        let dataSize = frameCount * 2
+        let headerSize = 44
+        var wav = Data(count: headerSize + dataSize)
+
+        // WAV header
+        wav.replaceSubrange(0..<4, with: "RIFF".data(using: .ascii)!)
+        var fileSize = UInt32(headerSize + dataSize - 8)
+        wav.replaceSubrange(4..<8, with: Data(bytes: &fileSize, count: 4))
+        wav.replaceSubrange(8..<12, with: "WAVE".data(using: .ascii)!)
+        wav.replaceSubrange(12..<16, with: "fmt ".data(using: .ascii)!)
+        var fmtSize: UInt32 = 16; wav.replaceSubrange(16..<20, with: Data(bytes: &fmtSize, count: 4))
+        var audioFormat: UInt16 = 1; wav.replaceSubrange(20..<22, with: Data(bytes: &audioFormat, count: 2))
+        var channels: UInt16 = 1; wav.replaceSubrange(22..<24, with: Data(bytes: &channels, count: 2))
+        var sr: UInt32 = UInt32(sampleRate); wav.replaceSubrange(24..<28, with: Data(bytes: &sr, count: 4))
+        var byteRate: UInt32 = UInt32(sampleRate) * 2; wav.replaceSubrange(28..<32, with: Data(bytes: &byteRate, count: 4))
+        var blockAlign: UInt16 = 2; wav.replaceSubrange(32..<34, with: Data(bytes: &blockAlign, count: 2))
+        var bitsPerSample: UInt16 = 16; wav.replaceSubrange(34..<36, with: Data(bytes: &bitsPerSample, count: 2))
+        wav.replaceSubrange(36..<40, with: "data".data(using: .ascii)!)
+        var ds: UInt32 = UInt32(dataSize); wav.replaceSubrange(40..<44, with: Data(bytes: &ds, count: 4))
+
+        for i in 0..<frameCount {
+            var sample = Int16(max(-32768, min(32767, samples[i] * 32767)))
+            wav.replaceSubrange((headerSize + i * 2)..<(headerSize + i * 2 + 2), with: Data(bytes: &sample, count: 2))
+        }
+
+        do {
+            thinkingPlayer = try AVAudioPlayer(data: wav)
+            thinkingPlayer?.volume = 0.3
+
+            // Play the bloop every 2 seconds
+            thinkingPlayer?.play()
+            thinkingTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { _ in
+                Task { @MainActor [weak self] in
+                    self?.thinkingPlayer?.currentTime = 0
+                    self?.thinkingPlayer?.play()
+                }
+            }
+        } catch {
+            print("🔊 Thinking sound error: \(error)")
+        }
     }
 
     /// Stop the thinking sound.
     func stopThinkingSound() {
-        // Placeholder
+        thinkingTimer?.invalidate()
+        thinkingTimer = nil
+        thinkingPlayer?.stop()
+        thinkingPlayer = nil
     }
 }
 

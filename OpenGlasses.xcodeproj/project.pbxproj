@@ -25,6 +25,7 @@
 		507F2D792F6F59050082DF05 /* MLXLLM in Frameworks */ = {isa = PBXBuildFile; productRef = F2A3B4C5D6E7F8A9B0C1D3E4 /* MLXLLM */; };
 		507F2D7A2F6F59050082DF05 /* MLXLMCommon in Frameworks */ = {isa = PBXBuildFile; productRef = A3B4C5D6E7F8A9B0C1D3E4F5 /* MLXLMCommon */; };
 		507F2D7B2F6F59050082DF05 /* MLXVLM in Frameworks */ = {isa = PBXBuildFile; productRef = B4C5D6E7F8A9B0C1D3E4F5A6 /* MLXVLM */; };
+		5B854C337C8F1CA4BDC2299D /* ConversationHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1CAE28FF269E4110A02A05 /* ConversationHistoryView.swift */; };
 		6253D50924BD14A6BCA716D5 /* BroadcastService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08B79FC26FE1B44E77C0753D /* BroadcastService.swift */; };
 		625C2A5558308BD536ED3B7A /* IntentClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36B33F7CD7BFCA62F875015B /* IntentClassifier.swift */; };
 		64E33EA57E291566D6E0D155 /* AddModelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 541EC20D0D9F29F7D263F544 /* AddModelView.swift */; };
@@ -258,6 +259,7 @@
 		F3DC7F9FD93C5E42385EC67E /* OpenAIRealtimeSessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAIRealtimeSessionManager.swift; sourceTree = "<group>"; };
 		F4DD6028522D2C2B1D52DD7C /* GeminiLiveService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeminiLiveService.swift; sourceTree = "<group>"; };
 		F6E5D4C3B2A1F0E9D8C7B6A5 /* PromptInspectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromptInspectorView.swift; sourceTree = "<group>"; };
+		FF1CAE28FF269E4110A02A05 /* ConversationHistoryView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ConversationHistoryView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -339,6 +341,7 @@
 				3B6692EEA65ADB1BD263FEFE /* LivePreviewView.swift */,
 				132251AD6FB50C4511C41E79 /* ShareSheet.swift */,
 				BB39393939393939BB393939 /* AmbientCaptionOverlay.swift */,
+				FF1CAE28FF269E4110A02A05 /* ConversationHistoryView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -699,6 +702,7 @@
 				AA44444444444444AA444444 /* FitnessCoachingTool.swift in Sources */,
 				AA45454545454545AA454545 /* OpenClawSkillsTool.swift in Sources */,
 				AA46464646464646AA464646 /* WebRTCStreamingService.swift in Sources */,
+				5B854C337C8F1CA4BDC2299D /* ConversationHistoryView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

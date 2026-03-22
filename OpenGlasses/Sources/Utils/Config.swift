@@ -32,6 +32,10 @@ struct ModelConfig: Codable, Identifiable, Equatable {
             // Qwen3.5-plus and qwen-vl models support vision
             let lowerModel = model.lowercased()
             return lowerModel.contains("vl") || lowerModel.contains("plus") || lowerModel.contains("max") || lowerModel.contains("omni")
+        case .openrouter:
+            // OpenRouter supports vision for many models
+            let lowerModel = model.lowercased()
+            return lowerModel.contains("claude") || lowerModel.contains("gpt-4") || lowerModel.contains("gemini") || lowerModel.contains("vision") || lowerModel.contains("llava")
         case .zai, .minimax, .custom:
             let lowerModel = model.lowercased()
             let lowerBaseURL = baseURL.lowercased()
@@ -874,6 +878,18 @@ struct Config {
 
     static func setEmotionAwareTTSEnabled(_ enabled: Bool) {
         UserDefaults.standard.set(enabled, forKey: "emotionAwareTTSEnabled")
+    }
+
+    // MARK: - Glasses Mic for Wake Word
+
+    static var useGlassesMicForWakeWord: Bool {
+        let key = "useGlassesMicForWakeWord"
+        if UserDefaults.standard.object(forKey: key) == nil { return true }
+        return UserDefaults.standard.bool(forKey: key)
+    }
+
+    static func setUseGlassesMicForWakeWord(_ enabled: Bool) {
+        UserDefaults.standard.set(enabled, forKey: "useGlassesMicForWakeWord")
     }
 
     // MARK: - WebRTC Streaming

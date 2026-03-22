@@ -9,6 +9,7 @@ enum LLMProvider: String, CaseIterable {
     case zai = "zai"
     case qwen = "qwen"
     case minimax = "minimax"
+    case openrouter = "openrouter"
     case custom = "custom"
     case local = "local"
 
@@ -21,6 +22,7 @@ enum LLMProvider: String, CaseIterable {
         case .zai: return "Z.ai (Subscription)"
         case .qwen: return "Qwen (Coding Plan subscription)"
         case .minimax: return "MiniMax (Subscription)"
+        case .openrouter: return "OpenRouter (500+ models)"
         case .custom: return "Custom (OpenAI-compatible)"
         case .local: return "Local (On-Device)"
         }
@@ -30,7 +32,7 @@ enum LLMProvider: String, CaseIterable {
     var isOpenAICompatible: Bool {
         switch self {
         case .anthropic, .gemini, .local: return false
-        case .openai, .groq, .zai, .qwen, .minimax, .custom: return true
+        case .openai, .groq, .zai, .qwen, .minimax, .openrouter, .custom: return true
         }
     }
 
@@ -44,6 +46,7 @@ enum LLMProvider: String, CaseIterable {
         case .zai: return "https://api.z.ai/api/coding/paas/v4/chat/completions"
         case .qwen: return "https://coding-intl.dashscope.aliyuncs.com/v1/chat/completions"
         case .minimax: return "https://api.minimaxi.chat/v1/text/chatcompletion_v2"
+        case .openrouter: return "https://openrouter.ai/api/v1/chat/completions"
         case .custom: return "https://api.openai.com/v1/chat/completions"
         case .local: return ""
         }
@@ -59,6 +62,7 @@ enum LLMProvider: String, CaseIterable {
         case .zai: return "glm-4.5"
         case .qwen: return "qwen3.5-plus"
         case .minimax: return "MiniMax-Text-01"
+        case .openrouter: return "anthropic/claude-sonnet-4"
         case .custom: return "gpt-4o"
         case .local: return "mlx-community/gemma-2-2b-it-4bit"
         }
@@ -298,7 +302,7 @@ class LLMService: ObservableObject {
             return try await sendGemini(text, systemPrompt: fullPrompt, config: modelConfig, includeTools: includeTools, imageData: imageData)
         case .local:
             return try await sendLocal(text, systemPrompt: fullPrompt, config: modelConfig, includeTools: includeTools, imageData: imageData)
-        case .openai, .groq, .zai, .qwen, .minimax, .custom:
+        case .openai, .groq, .zai, .qwen, .minimax, .openrouter, .custom:
             return try await sendOpenAICompatible(text, systemPrompt: fullPrompt, config: modelConfig, includeTools: includeTools, imageData: imageData)
         }
     }
@@ -525,6 +529,12 @@ class LLMService: ObservableObject {
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
             request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
 
+            // OpenRouter requires additional headers for tracking
+            if provider == .openrouter {
+                request.setValue("https://github.com/straff2002/OpenGlasses", forHTTPHeaderField: "HTTP-Referer")
+                request.setValue("OpenGlasses", forHTTPHeaderField: "X-Title")
+            }
+
             // OpenAI format: system prompt is a message in the array
             var messages: [[String: Any]] = [
                 ["role": "system", "content": systemPrompt]
@@ -539,7 +549,7 @@ class LLMService: ObservableObject {
 
             // Only attach Tools if the provider reliably supports function calling.
             // Custom endpoints (Ollama/LMStudio) often crash with 400 if `tools` array is in the payload.
-            let providerSupportsTools = provider == .openai || provider == .groq || provider == .zai || provider == .qwen
+            let providerSupportsTools = provider == .openai || provider == .groq || provider == .zai || provider == .qwen || provider == .openrouter
 
             if includeTools && providerSupportsTools {
                 let includeOpenClaw = Config.isOpenClawConfigured && openClawBridge != nil
