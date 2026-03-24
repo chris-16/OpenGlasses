@@ -179,12 +179,6 @@
             "value": "Nastavenia"
           }
         },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "הגדרות"
-          }
-        },
         "ms": {
           "stringUnit": {
             "state": "translated",
@@ -392,12 +386,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Hotovo"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "סיום"
           }
         },
         "ms": {
@@ -609,12 +597,6 @@
             "value": "Zrušiť"
           }
         },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ביטול"
-          }
-        },
         "ms": {
           "stringUnit": {
             "state": "translated",
@@ -822,12 +804,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Uložiť"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "שמירה"
           }
         },
         "ms": {
@@ -1039,12 +1015,6 @@
             "value": "Pridať"
           }
         },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "הוספה"
-          }
-        },
         "ms": {
           "stringUnit": {
             "state": "translated",
@@ -1252,12 +1222,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vymazať"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "מחיקה"
           }
         },
         "ms": {
@@ -1469,12 +1433,6 @@
             "value": "Upraviť"
           }
         },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "עריכה"
-          }
-        },
         "ms": {
           "stringUnit": {
             "state": "translated",
@@ -1682,12 +1640,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zrušené"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "בוטל"
           }
         },
         "ms": {
@@ -1899,12 +1851,6 @@
             "value": "Počúvam"
           }
         },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "מאזין"
-          }
-        },
         "ms": {
           "stringUnit": {
             "state": "translated",
@@ -2112,12 +2058,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pripojené"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "מחובר"
           }
         },
         "ms": {
@@ -2329,12 +2269,6 @@
             "value": "Odpojené"
           }
         },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "מנותק"
-          }
-        },
         "ms": {
           "stringUnit": {
             "state": "translated",
@@ -2542,12 +2476,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Najprv pripojte okuliare"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "חבר משקפיים קודם"
           }
         },
         "ms": {
@@ -2759,12 +2687,6 @@
             "value": "Pripojiť okuliare"
           }
         },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "חבר משקפיים"
-          }
-        },
         "ms": {
           "stringUnit": {
             "state": "translated",
@@ -2972,12 +2894,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Odfotiť"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "צלם תמונה"
           }
         },
         "ms": {
@@ -5124,12 +5040,6 @@
             "value": "Nástroje"
           }
         },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "כלים"
-          }
-        },
         "ms": {
           "stringUnit": {
             "state": "translated",
@@ -6195,12 +6105,6 @@
             "value": "Odpoveď"
           }
         },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "תגובה"
-          }
-        },
         "ms": {
           "stringUnit": {
             "state": "translated",
@@ -6408,12 +6312,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ty"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "אתה"
           }
         },
         "ms": {
@@ -6625,12 +6523,6 @@
             "value": "Chyba"
           }
         },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "שגיאה"
-          }
-        },
         "ms": {
           "stringUnit": {
             "state": "translated",
@@ -6838,12 +6730,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Rýchlosť"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "מהירות"
           }
         },
         "ms": {
@@ -7055,12 +6941,6 @@
             "value": "Rýchly"
           }
         },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "מהיר"
-          }
-        },
         "ms": {
           "stringUnit": {
             "state": "translated",
@@ -7268,12 +7148,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vyvážený"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "מאוזן"
           }
         },
         "ms": {
@@ -7485,12 +7359,6 @@
             "value": "Najlepší"
           }
         },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "הטוב ביותר"
-          }
-        },
         "ms": {
           "stringUnit": {
             "state": "translated",
@@ -7698,12 +7566,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Opísať"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "תאר"
           }
         },
         "ms": {
@@ -8141,12 +8003,6 @@
             "value": "Opýtať sa"
           }
         },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "שאל"
-          }
-        },
         "ms": {
           "stringUnit": {
             "state": "translated",
@@ -8354,12 +8210,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Fotka"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "תמונה"
           }
         },
         "ms": {
@@ -10903,12 +10753,6 @@
             "value": "Vitajte v OpenGlasses"
           }
         },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ברוכים הבאים ל-OpenGlasses"
-          }
-        },
         "ms": {
           "stringUnit": {
             "state": "translated",
@@ -11882,12 +11726,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Skúsiť znova"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "נסה שוב"
           }
         },
         "ms": {
@@ -13879,12 +13717,6 @@
             "value": "Premýšľam…"
           }
         },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "…חושב"
-          }
-        },
         "ms": {
           "stringUnit": {
             "state": "translated",
@@ -14094,12 +13926,6 @@
             "value": "Hovorím…"
           }
         },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "…מדבר"
-          }
-        },
         "ms": {
           "stringUnit": {
             "state": "translated",
@@ -14307,12 +14133,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Počúvam…"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "…מאזין"
           }
         },
         "ms": {

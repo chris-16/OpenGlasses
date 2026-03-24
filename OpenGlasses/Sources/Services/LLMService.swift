@@ -121,13 +121,6 @@ class LLMService: ObservableObject {
     private static func buildSystemPrompt(locationContext: String?, includeTools: Bool, includeOpenClaw: Bool, hasImage: Bool, nativeToolNames: [String] = [], memoryContext: String? = nil) -> String {
         var prompt = Config.systemPrompt
 
-        // Instruct the LLM to respond in the user's preferred language
-        let languageCode = Locale.current.language.languageCode?.identifier ?? "en"
-        if languageCode != "en" {
-            let languageName = Locale.current.localizedString(forLanguageCode: languageCode) ?? languageCode
-            prompt = "IMPORTANT: Always respond in \(languageName) (\(languageCode)). All spoken output must be in \(languageName).\n\n" + prompt
-        }
-
         // Ensure vision awareness is always present, even if user has a custom system prompt
         if !prompt.lowercased().contains("vision") && !prompt.lowercased().contains("camera") {
             prompt += """

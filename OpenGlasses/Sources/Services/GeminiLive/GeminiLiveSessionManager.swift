@@ -375,13 +375,6 @@ class GeminiLiveSessionManager: ObservableObject {
         let modePrefix = Config.activeLiveAIMode.promptPrefix
         var prompt = modePrefix + Config.systemPrompt
 
-        // Instruct in user's preferred language
-        let languageCode = Locale.current.language.languageCode?.identifier ?? "en"
-        if languageCode != "en" {
-            let languageName = Locale.current.localizedString(forLanguageCode: languageCode) ?? languageCode
-            prompt = "IMPORTANT: Always respond in \(languageName) (\(languageCode)).\n\n" + prompt
-        }
-
         // Vision prompt depends on whether camera frames are actually flowing.
         // When streaming: full vision instructions.
         // When not streaming: tell Gemini camera is connecting, and critically —

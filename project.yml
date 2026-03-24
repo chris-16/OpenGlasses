@@ -39,7 +39,6 @@ options:
     - hu
     - hr
     - sk
-    - he
     - ms
     - vi
     - id
@@ -62,8 +61,6 @@ targets:
     platform: iOS
     sources:
       - path: OpenGlasses/Sources
-    info:
-      path: OpenGlasses/Info.plist
     entitlements:
       path: OpenGlasses/OpenGlasses.entitlements
     settings:
@@ -73,6 +70,8 @@ targets:
         CURRENT_PROJECT_VERSION: "5"
         SWIFT_VERSION: "5.9"
         CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION: "YES"
+        INFOPLIST_FILE: OpenGlasses/Info.plist
+        GENERATE_INFOPLIST_FILE: "NO"
         INFOPLIST_KEY_CFBundleDisplayName: "OpenGlasses"
         INFOPLIST_KEY_LSApplicationCategoryType: "public.app-category.utilities"
     dependencies:
