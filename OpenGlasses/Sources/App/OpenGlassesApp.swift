@@ -781,6 +781,7 @@ class AppState: ObservableObject {
         print("🛑 User tapped stop")
         speechService.stopSpeaking()
         isProcessing = false
+            speechService.stopThinkingSound()
         // Stay in conversation — listen for follow-up right away
         if inConversation {
             print("💬 Listening for follow-up after stop...")
@@ -808,6 +809,7 @@ class AppState: ObservableObject {
         print("🛑 User cancelled response")
         speechService.stopSpeaking()
         isProcessing = false
+            speechService.stopThinkingSound()
         isListening = false
         inConversation = false
         lastResponse = "Cancelled"
@@ -846,6 +848,7 @@ class AppState: ObservableObject {
             }
 
             isProcessing = false
+            speechService.stopThinkingSound()
             startStopListener()
             await speechService.speak(response)
             stopStopListener()
@@ -857,6 +860,7 @@ class AppState: ObservableObject {
                 cameraService.restoreAudioForWakeWord()
             }
             isProcessing = false
+            speechService.stopThinkingSound()
             errorMessage = "Photo failed: \(error.localizedDescription)"
             let generator = UINotificationFeedbackGenerator()
             generator.notificationOccurred(.error)
@@ -896,6 +900,7 @@ class AppState: ObservableObject {
             print("🤖 \(llmService.activeModelName) (vision): \(response)")
 
             isProcessing = false
+            speechService.stopThinkingSound()
             startStopListener()
             await speechService.speak(response)
             stopStopListener()
@@ -907,6 +912,7 @@ class AppState: ObservableObject {
                 cameraService.restoreAudioForWakeWord()
             }
             isProcessing = false
+            speechService.stopThinkingSound()
             errorMessage = "Photo failed: \(error.localizedDescription)"
             let generator = UINotificationFeedbackGenerator()
             generator.notificationOccurred(.error)
@@ -1182,6 +1188,7 @@ class AppState: ObservableObject {
                 await speechService.speak("Sorry, I couldn't take a photo or process the image. \(error.localizedDescription)")
             }
             isProcessing = false
+            speechService.stopThinkingSound()
             if inConversation {
                 isListening = true
                 transcriptionService.startRecording()
@@ -1234,6 +1241,7 @@ class AppState: ObservableObject {
 
         // After responding, stay in conversation — listen for follow-up
         isProcessing = false
+            speechService.stopThinkingSound()
         if inConversation {
             print("💬 Continuing conversation — listening for follow-up...")
             isListening = true
