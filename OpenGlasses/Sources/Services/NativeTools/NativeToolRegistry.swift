@@ -88,6 +88,7 @@ final class NativeToolRegistry {
         }
         register(FoodAnalysisTool())
         register(AgentScheduleTool())
+        register(AgentDocumentTool())
         var discoveryTool = DiscoverCapabilitiesTool()
         discoveryTool.toolRegistry = self
         register(discoveryTool)

@@ -354,6 +354,12 @@ class AppState: ObservableObject {
         )
         nativeToolRouter = NativeToolRouter(registry: nativeToolRegistry, openClawBridge: openClawBridge)
 
+        // Wire agent document store into the doc editing tool
+        if var docTool = nativeToolRegistry.tool(named: "edit_agent_docs") as? AgentDocumentTool {
+            docTool.agentDocs = agentDocs
+            nativeToolRegistry.register(docTool)
+        }
+
         addDebugEvent("AppState initialized")
         // Share the audio engine so transcription works in background
         transcriptionService.sharedAudioEngineProvider = wakeWordService
