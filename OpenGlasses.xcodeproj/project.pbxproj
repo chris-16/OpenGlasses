@@ -16,6 +16,7 @@
 		060C86841896CC8A6EB2817A /* OnboardingOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA04A8BC26B0183543D82347 /* OnboardingOverlay.swift */; };
 		061F2082F2ED7B2594188FDC /* DeviceInfoTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 220AC9B94458D011A6DC7E37 /* DeviceInfoTool.swift */; };
 		066E4CA3FFB116B1DAF8DB58 /* OpenAIRealtimeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24FDEE6CFAE6AD8A3F2AC702 /* OpenAIRealtimeService.swift */; };
+		067BF84ACE5DE5A03C059189 /* intro.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 45E3B3049C0DE740FA37ABE1 /* intro.mp4 */; };
 		0C838423C97FA7697C3656B6 /* MeetingSummaryTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 187F7D4D257473BA5144A577 /* MeetingSummaryTool.swift */; };
 		0F0ED56F849E29DD52B82682 /* GeminiLiveService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4DD6028522D2C2B1D52DD7C /* GeminiLiveService.swift */; };
 		10B64E733570FE21A2622316 /* PromptInspectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 858140B42DD1633F563E5BFB /* PromptInspectorView.swift */; };
@@ -46,6 +47,7 @@
 		469C58BC201F2C2F9A9486B4 /* LocalModelManagerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F6E899836112BC616D55DFB /* LocalModelManagerView.swift */; };
 		4B218F08B37EFD2AB9B1A7E8 /* AlarmTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = A52BFC30C1CD9580378CA279 /* AlarmTool.swift */; };
 		4C0747C3D70826C4899E7E00 /* MWDATCamera in Frameworks */ = {isa = PBXBuildFile; productRef = D8AD4E224036184FB764A25D /* MWDATCamera */; };
+		4E2A4520F7A5129BAF1E27ED /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 39CB5B3B95E7FA76233BD1FF /* Assets.xcassets */; };
 		53CA82E8C91553F4DA68A94C /* ContactsTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB0C5659A007A2FE3733DE35 /* ContactsTool.swift */; };
 		55911677E2A9DB9541C71B40 /* AppleRemindersTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4691CC4CEA5C75C810866ECA /* AppleRemindersTool.swift */; };
 		55B1EEDF2C214A5879E3CA87 /* RadialLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A48B38555905532425A7161 /* RadialLayout.swift */; };
@@ -77,6 +79,7 @@
 		86BBC2DD9CA6BE984F6A4A0A /* ClipboardTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F9681F3CF3D50D4DF29A44E /* ClipboardTool.swift */; };
 		87E23A9D8F50F12602B1D42C /* TimerTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BFED4950BC44C86917507CE /* TimerTool.swift */; };
 		88950FDF34C274D96346CB5F /* WebRTCStreamingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D415887C46D5DB5C67BDA6E0 /* WebRTCStreamingService.swift */; };
+		88BAA9837169D48E978BBC8F /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 2AC3BE7ED439720FFF45458D /* Localizable.xcstrings */; };
 		8A9F7CE62FE4D6297A5D6F3F /* WakeWordService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 736455826E1BEAD947489D6E /* WakeWordService.swift */; };
 		8E52D9A49E71CFE5678E0619 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86E73FAAA05B0E98D5A95378 /* RootView.swift */; };
 		91DD13D2BC6D1247C9751196 /* DirectionsTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = D56AC77FDD0C1EBA73F47979 /* DirectionsTool.swift */; };
@@ -217,6 +220,7 @@
 		220AC9B94458D011A6DC7E37 /* DeviceInfoTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceInfoTool.swift; sourceTree = "<group>"; };
 		24FDEE6CFAE6AD8A3F2AC702 /* OpenAIRealtimeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAIRealtimeService.swift; sourceTree = "<group>"; };
 		29082A436A56096C7F4500C5 /* ToolsSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolsSettingsView.swift; sourceTree = "<group>"; };
+		2AC3BE7ED439720FFF45458D /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		2C8683007735AA0558FA2461 /* OpenGlassesApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenGlassesApp.swift; sourceTree = "<group>"; };
 		2DDFBC9ABC7867FB504138E1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		2DF4A8B9C2961DE7DCEA4287 /* OpenGlassesWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OpenGlassesWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -224,10 +228,12 @@
 		35D21CFB73A908ADC22C5558 /* WebSearchTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSearchTool.swift; sourceTree = "<group>"; };
 		36A7F34BB9CDB6C943DB5354 /* FlashlightTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlashlightTool.swift; sourceTree = "<group>"; };
 		377F92EB5BBCF9661C7C6F1C /* FitnessCoachingTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitnessCoachingTool.swift; sourceTree = "<group>"; };
+		39CB5B3B95E7FA76233BD1FF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		39E63B290EDC9DE71ABE9DA2 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		3B5862735E7590C1743F7B97 /* CurrencyTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrencyTool.swift; sourceTree = "<group>"; };
 		3C0F8D58645BC6DDBF5EBE6D /* OpenClawSkillsTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenClawSkillsTool.swift; sourceTree = "<group>"; };
 		4252125BA0BF5D460D5DA5B9 /* FaceRecognitionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceRecognitionService.swift; sourceTree = "<group>"; };
+		45E3B3049C0DE740FA37ABE1 /* intro.mp4 */ = {isa = PBXFileReference; path = intro.mp4; sourceTree = "<group>"; };
 		4691CC4CEA5C75C810866ECA /* AppleRemindersTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleRemindersTool.swift; sourceTree = "<group>"; };
 		478A79F180A74BD2D8D9814B /* DailyBriefingTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyBriefingTool.swift; sourceTree = "<group>"; };
 		4853693E7F16A7B1FCCAB6DD /* ConversationHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationHistoryView.swift; sourceTree = "<group>"; };
@@ -377,6 +383,16 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		358B2C987A79B0BACD93E083 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				39CB5B3B95E7FA76233BD1FF /* Assets.xcassets */,
+				45E3B3049C0DE740FA37ABE1 /* intro.mp4 */,
+				2AC3BE7ED439720FFF45458D /* Localizable.xcstrings */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
 		65B47BA918A192AACE4D778A = {
 			isa = PBXGroup;
 			children = (
@@ -509,6 +525,7 @@
 			children = (
 				C2C29603985D56F1399EEF82 /* App */,
 				7CE5572E880B36C811A9C417 /* Models */,
+				358B2C987A79B0BACD93E083 /* Resources */,
 				A4BE5203F9D0F9A8B998800D /* Services */,
 				C09D7C6A58FDB78ECFFD562A /* Utils */,
 			);
@@ -603,6 +620,7 @@
 			buildConfigurationList = 176266C4F702F570FE07DDB8 /* Build configuration list for PBXNativeTarget "OpenGlasses" */;
 			buildPhases = (
 				C6F292A166A9C09B1C080844 /* Sources */,
+				3C05D43480954E5ECA596171 /* Resources */,
 				717EF3667BC957DEC54223FF /* Frameworks */,
 				079AA58B73B5A39F7CCEBC7E /* Embed Foundation Extensions */,
 				2B760D8A3C4AD6FD4A929B7F /* Embed Watch Content */,
@@ -695,6 +713,19 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		3C05D43480954E5ECA596171 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4E2A4520F7A5129BAF1E27ED /* Assets.xcassets in Resources */,
+				88BAA9837169D48E978BBC8F /* Localizable.xcstrings in Resources */,
+				067BF84ACE5DE5A03C059189 /* intro.mp4 in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		1C86EA24702767AFB6642F0A /* Sources */ = {

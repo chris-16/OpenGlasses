@@ -40,10 +40,6 @@ targets:
     platform: iOS
     sources:
       - path: OpenGlasses/Sources
-        excludes:
-          - "Resources/**"
-    resources:
-      - path: OpenGlasses/Sources/Resources
     info:
       path: OpenGlasses/Info.plist
     entitlements:
