@@ -170,6 +170,16 @@ struct BottomControlBar: View {
                     }
                 }
             }
+        } else if appState.isProcessing || appState.speechService.isSpeaking {
+            // Interrupt: cancel current processing or TTS
+            CircleButton(
+                icon: "stop.fill",
+                size: 56,
+                isActive: true,
+                label: appState.speechService.isSpeaking ? "Tap to stop" : "Tap to cancel"
+            ) {
+                appState.cancelCurrentResponse()
+            }
         } else {
             CircleButton(
                 icon: appState.isListening ? "mic.fill" : "mic",

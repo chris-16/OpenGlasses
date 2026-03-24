@@ -1,0 +1,87 @@
+import ActivityKit
+import Foundation
+
+/// Manages the glasses Live Activity on Lock Screen and Dynamic Island.
+@MainActor
+class LiveActivityManager {
+    private var currentActivity: Activity<GlassesActivityAttributes>?
+
+    /// Start a new Live Activity. No-op if one is already running or Live Activities are disabled.
+    func start(glassesName: String = "OpenGlasses") {
+        guard ActivityAuthorizationInfo().areActivitiesEnabled else {
+            NSLog("[LiveActivity] Activities not enabled")
+            return
+        }
+        guard currentActivity == nil else {
+            NSLog("[LiveActivity] Already running")
+            return
+        }
+
+        let attributes = GlassesActivityAttributes(glassesName: glassesName)
+        let initialState = GlassesActivityAttributes.ContentState(
+            isConnected: false,
+            isListening: false,
+            isSpeaking: false,
+            isProcessing: false,
+            lastResponseSnippet: "",
+            deviceName: nil
+        )
+
+        do {
+            let activity = try Activity.request(
+                attributes: attributes,
+                content: .init(state: initialState, staleDate: nil),
+                pushType: nil
+            )
+            currentActivity = activity
+            NSLog("[LiveActivity] Started: %@", activity.id)
+        } catch {
+            NSLog("[LiveActivity] Failed to start: %@", error.localizedDescription)
+        }
+    }
+
+    /// Update the Live Activity with current state.
+    func update(
+        isConnected: Bool,
+        isListening: Bool = false,
+        isSpeaking: Bool = false,
+        isProcessing: Bool = false,
+        lastResponse: String = "",
+        deviceName: String? = nil
+    ) {
+        guard let activity = currentActivity else { return }
+
+        let snippet = String(lastResponse.prefix(80))
+        let state = GlassesActivityAttributes.ContentState(
+            isConnected: isConnected,
+            isListening: isListening,
+            isSpeaking: isSpeaking,
+            isProcessing: isProcessing,
+            lastResponseSnippet: snippet,
+            deviceName: deviceName
+        )
+
+        Task {
+            await activity.update(.init(state: state, staleDate: nil))
+        }
+    }
+
+    /// End the Live Activity immediately.
+    func end() {
+        guard let activity = currentActivity else { return }
+        let finalState = GlassesActivityAttributes.ContentState(
+            isConnected: false,
+            isListening: false,
+            isSpeaking: false,
+            isProcessing: false,
+            lastResponseSnippet: "",
+            deviceName: nil
+        )
+
+        Task {
+            await activity.end(.init(state: finalState, staleDate: nil), dismissalPolicy: .immediate)
+            NSLog("[LiveActivity] Ended")
+        }
+        currentActivity = nil
+    }
+}

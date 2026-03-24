@@ -37,6 +37,28 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
+                // MARK: Wake Word
+                Section {
+                    Picker("Wake Phrase", selection: Binding(
+                        get: { Config.wakePhrase },
+                        set: { newValue in
+                            Config.setWakePhrase(newValue)
+                            Config.setAlternativeWakePhrases(Config.defaultAlternativesForPhrase(newValue))
+                        }
+                    )) {
+                        Text("Hey OpenGlasses").tag("hey openglasses")
+                        Text("Hey Claude").tag("hey claude")
+                        Text("Hey Jarvis").tag("hey jarvis")
+                        Text("Hey Computer").tag("hey computer")
+                        Text("Hey Assistant").tag("hey assistant")
+                        Text("Hey Rayban").tag("hey rayban")
+                    }
+                } header: {
+                    Text("Wake Word")
+                } footer: {
+                    Text("Choose the phrase that activates the assistant. Personas can override this with their own wake phrases.")
+                }
+
                 // MARK: Personas
                 Section {
                     NavigationLink {

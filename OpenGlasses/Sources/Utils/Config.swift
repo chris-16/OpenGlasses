@@ -1,5 +1,25 @@
 import Foundation
 
+/// A quick action button shown on the main screen.
+struct QuickAction: Codable, Identifiable {
+    var id: String
+    var label: String
+    var icon: String
+
+    enum ActionType: Codable {
+        case prompt(String)
+        case photo
+        case photoThenPrompt(String)
+    }
+    var type: ActionType
+
+    static let defaults: [QuickAction] = [
+        QuickAction(id: "describe", label: "Describe", icon: "eye", type: .photoThenPrompt("Describe what you see in this image in detail.")),
+        QuickAction(id: "calendar", label: "Event", icon: "calendar", type: .photoThenPrompt("Extract any event details from this image (dates, times, locations, names) and create a calendar entry summary.")),
+        QuickAction(id: "task", label: "Task", icon: "checklist", type: .photoThenPrompt("Extract any action items or tasks from this image and list them.")),
+    ]
+}
+
 /// A saved LLM model configuration
 struct ModelConfig: Codable, Identifiable, Equatable {
     var id: String  // UUID string
@@ -261,6 +281,57 @@ struct Config {
 
     static func setOpenAIModel(_ model: String) {
         UserDefaults.standard.set(model, forKey: "openAIModel")
+    }
+
+    // MARK: - Model Tier
+
+    enum ModelTier: String, CaseIterable, Identifiable {
+        case fast, balanced, best
+
+        var id: String { rawValue }
+
+        var displayName: String {
+            switch self {
+            case .fast: return "Fast"
+            case .balanced: return "Balanced"
+            case .best: return "Best"
+            }
+        }
+
+        var icon: String {
+            switch self {
+            case .fast: return "hare"
+            case .balanced: return "scalemass"
+            case .best: return "brain.head.profile"
+            }
+        }
+
+        /// Keywords that identify a model as belonging to this tier (matched against model name/ID, case-insensitive).
+        var modelKeywords: [String] {
+            switch self {
+            case .fast: return ["haiku", "flash", "mini", "4o-mini", "gpt-4o-mini", "llama", "mixtral"]
+            case .balanced: return ["sonnet", "gpt-4o", "gemini-pro", "gemini-2"]
+            case .best: return ["opus", "o3", "o1", "pro", "gpt-4-turbo"]
+            }
+        }
+    }
+
+    static var modelTier: ModelTier {
+        ModelTier(rawValue: UserDefaults.standard.string(forKey: "modelTier") ?? "") ?? .balanced
+    }
+
+    static func setModelTier(_ tier: ModelTier) {
+        UserDefaults.standard.set(tier.rawValue, forKey: "modelTier")
+    }
+
+    /// Find the best model matching a tier from the saved models list.
+    static func modelForTier(_ tier: ModelTier) -> ModelConfig? {
+        let models = savedModels
+        let keywords = tier.modelKeywords
+        return models.first { model in
+            let combined = (model.name + " " + model.model).lowercased()
+            return keywords.contains { combined.contains($0) }
+        }
     }
 
     // MARK: - Multi-Model Configurations

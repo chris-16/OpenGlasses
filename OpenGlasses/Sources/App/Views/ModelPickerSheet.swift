@@ -19,6 +19,8 @@ struct ModelPickerSheet: View {
         .preferredColorScheme(.light)
     }
 
+    @State private var selectedTier: Config.ModelTier = Config.modelTier
+
     @ViewBuilder
     private var modelContent: some View {
         let savedModels = Config.savedModels
@@ -30,6 +32,22 @@ struct ModelPickerSheet: View {
             )
         } else {
             List {
+                Section {
+                    Picker("Speed", selection: $selectedTier) {
+                        ForEach(Config.ModelTier.allCases) { tier in
+                            Label(tier.displayName, systemImage: tier.icon)
+                                .tag(tier)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .onChange(of: selectedTier) { _, newTier in
+                        Config.setModelTier(newTier)
+                        if let match = Config.modelForTier(newTier) {
+                            selectModel(match)
+                        }
+                    }
+                }
+
                 modelRows(savedModels)
             }
         }

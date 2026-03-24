@@ -2,7 +2,8 @@ name: OpenGlasses
 options:
   bundleIdPrefix: com.openglasses
   deploymentTarget:
-    iOS: "26.0"
+    iOS: "17.0"
+    watchOS: "10.0"
   xcodeVersion: "16.0"
   generateEmptyDirectories: true
 
@@ -10,6 +11,12 @@ packages:
   meta-wearables-dat-ios:
     url: https://github.com/facebook/meta-wearables-dat-ios.git
     from: "0.3.0"
+  HaishinKit:
+    url: https://github.com/shogo4405/HaishinKit.swift.git
+    from: "2.0.0"
+  mlx-swift-lm:
+    url: https://github.com/ml-explore/mlx-swift-lm.git
+    branch: main
 
 targets:
   OpenGlasses:
@@ -17,40 +24,12 @@ targets:
     platform: iOS
     sources:
       - path: OpenGlasses/Sources
+        excludes:
+          - "Resources/**"
     resources:
       - path: OpenGlasses/Sources/Resources
     info:
       path: OpenGlasses/Info.plist
-      properties:
-        CFBundleName: "OpenGlasses"
-        CFBundleDisplayName: "OpenGlasses"
-        LSRequiresIPhoneOS: true
-        UILaunchScreen: {}
-        UISupportedInterfaceOrientations:
-          - UIInterfaceOrientationPortrait
-          - UIInterfaceOrientationPortraitUpsideDown
-          - UIInterfaceOrientationLandscapeLeft
-          - UIInterfaceOrientationLandscapeRight
-        NSMicrophoneUsageDescription: "OpenGlasses needs microphone access to listen for wake words and transcribe your voice commands."
-        NSSpeechRecognitionUsageDescription: "OpenGlasses uses speech recognition to detect the wake word and transcribe your questions for Claude."
-        NSPhotoLibraryAddUsageDescription: "OpenGlasses saves photos taken with your Ray-Ban Meta glasses to your photo library."
-        NSCameraUsageDescription: "OpenGlasses needs camera access to capture photos and video for the AI to analyze."
-        NSBluetoothAlwaysUsageDescription: "OpenGlasses uses Bluetooth to connect to your Ray-Ban Meta smart glasses."
-        NSBluetoothPeripheralUsageDescription: "OpenGlasses uses Bluetooth to connect to your Ray-Ban Meta smart glasses."
-        NSLocationWhenInUseUsageDescription: "OpenGlasses uses your location to provide contextually relevant answers based on where you are."
-        UIBackgroundModes:
-          - audio
-          - bluetooth-central
-        LSApplicationQueriesSchemes:
-          - "fb-viewapp"
-        MWDAT:
-          AppLinkURLScheme: "https://straff2002.github.io/OpenGlasses"
-          MetaAppID: "YOUR_META_APP_ID"
-          ClientToken: "AR|YOUR_META_APP_ID|YOUR_CLIENT_TOKEN_HASH"
-          TeamID: "$(DEVELOPMENT_TEAM)"
-        CFBundleURLTypes:
-          - CFBundleURLSchemes:
-              - "mwdat-YOUR_META_APP_ID"
     entitlements:
       path: OpenGlasses/OpenGlasses.entitlements
     settings:
@@ -60,8 +39,49 @@ targets:
         CURRENT_PROJECT_VERSION: "5"
         SWIFT_VERSION: "5.9"
         CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION: "YES"
+        INFOPLIST_KEY_CFBundleDisplayName: "OpenGlasses"
+        INFOPLIST_KEY_LSApplicationCategoryType: "public.app-category.utilities"
     dependencies:
       - package: meta-wearables-dat-ios
         product: MWDATCore
       - package: meta-wearables-dat-ios
         product: MWDATCamera
+      - package: HaishinKit
+        product: HaishinKit
+      - package: HaishinKit
+        product: RTMPHaishinKit
+      - package: mlx-swift-lm
+        product: MLXLLM
+      - package: mlx-swift-lm
+        product: MLXLMCommon
+      - package: mlx-swift-lm
+        product: MLXVLM
+      - target: GlassesActivityWidget
+      - target: OpenGlassesWatch
+
+  GlassesActivityWidget:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: GlassesActivityWidget
+      - path: OpenGlasses/Sources/Models/GlassesActivityAttributes.swift
+    info:
+      path: GlassesActivityWidget/Info.plist
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.openglasses.app.GlassesActivityWidget
+        SWIFT_VERSION: "5.9"
+        SKIP_INSTALL: "YES"
+
+  OpenGlassesWatch:
+    type: application
+    platform: watchOS
+    sources:
+      - path: OpenGlassesWatch
+    info:
+      path: OpenGlassesWatch/Info.plist
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.openglasses.app.watchkitapp
+        SWIFT_VERSION: "5.9"
+        SKIP_INSTALL: "YES"

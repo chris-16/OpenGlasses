@@ -48,6 +48,10 @@ struct MainView: View {
                 Spacer()
 
                 StatusIndicator(session: session, openAISession: openAISession)
+                    .overlay {
+                        QuickActionsOverlay()
+                            .environmentObject(appState)
+                    }
 
                 Spacer()
 

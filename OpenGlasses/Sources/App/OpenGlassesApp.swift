@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 import MWDATCore
 import AVFoundation
 import AppIntents
@@ -127,11 +128,11 @@ struct OpenGlassesApp: App {
             switch newPhase {
             case .background:
                 print("📱 App moved to background — keeping audio alive")
-                // Audio session stays active thanks to UIBackgroundModes: audio
-                // The wake word listener keeps running because AVAudioEngine
-                // continues in background with an active audio session
+                appState.liveActivityManager.end()
             case .active:
                 print("📱 App became active")
+                appState.liveActivityManager.start(glassesName: appState.glassesService.deviceName ?? "OpenGlasses")
+                appState.updateLiveActivity()
                 Task {
                     // Give onOpenURL time to process any pending Meta Auth callbacks
                     try? await Task.sleep(nanoseconds: 1_500_000_000)
@@ -241,6 +242,7 @@ class AppState: ObservableObject {
     let memoryRewind = MemoryRewindService()
     let privacyFilter = PrivacyFilterService()
     let webRTCStreaming = WebRTCStreamingService()
+    let liveActivityManager = LiveActivityManager()
 
     /// Pending item to show in the share sheet
     @Published var pendingShareItem: ShareItem?
@@ -260,7 +262,7 @@ class AppState: ObservableObject {
     let intentClassifier = IntentClassifier()
 
     private var cancellables: [Any] = []
-    private var isProcessing: Bool = false
+    @Published private(set) var isProcessing: Bool = false
     private var hasEverRegistered: Bool = false
     private var inConversation: Bool = false
 
@@ -385,6 +387,10 @@ class AppState: ObservableObject {
         }
         geminiLiveSession.onRequestStartCamera = cameraStartHandler
         openAIRealtimeSession.onRequestStartCamera = cameraStartHandler
+
+        // Wire Watch app connectivity
+        WatchConnectivityManager.shared.appState = self
+        WatchConnectivityManager.shared.activate()
 
         setupServiceCallbacks()
         observeGlassesConnection()
@@ -785,6 +791,78 @@ class AppState: ObservableObject {
         }
     }
 
+    /// Push current state to the Live Activity on Lock Screen / Dynamic Island.
+    func updateLiveActivity() {
+        liveActivityManager.update(
+            isConnected: isConnected,
+            isListening: isListening,
+            isSpeaking: speechService.isSpeaking,
+            isProcessing: isProcessing,
+            lastResponse: lastResponse,
+            deviceName: glassesService.deviceName
+        )
+    }
+
+    /// Cancel current LLM processing or TTS playback and return to wake word listening.
+    func cancelCurrentResponse() {
+        print("🛑 User cancelled response")
+        speechService.stopSpeaking()
+        isProcessing = false
+        isListening = false
+        inConversation = false
+        lastResponse = "Cancelled"
+        activePersona = nil
+        updateLiveActivity()
+        Task { await returnToWakeWord() }
+    }
+
+    /// Capture a photo and send it to the LLM with a custom prompt.
+    func capturePhotoAndSend(prompt: String) async {
+        guard isConnected else {
+            errorMessage = "Connect glasses first"
+            return
+        }
+        isProcessing = true
+        speechService.startThinkingSound()
+        do {
+            let photoData = try await cameraService.capturePhoto()
+            if currentMode == .direct {
+                cameraService.restoreAudioForWakeWord()
+            }
+            cameraService.saveToPhotoLibrary(photoData)
+            print("📸 Photo + prompt: \(prompt)")
+
+            let rawResponse = try await llmService.sendMessage(
+                prompt,
+                locationContext: locationService.locationContext,
+                imageData: photoData,
+                memoryContext: Config.userMemoryEnabled ? userMemory.systemPromptContext() : nil
+            )
+            let response = Config.userMemoryEnabled ? userMemory.parseAndExecuteCommands(in: rawResponse) : rawResponse
+            lastResponse = response
+            if Config.conversationPersistenceEnabled {
+                conversationStore.appendMessage(role: "user", content: "[Photo] \(prompt)")
+                conversationStore.appendMessage(role: "assistant", content: response)
+            }
+
+            isProcessing = false
+            startStopListener()
+            await speechService.speak(response)
+            stopStopListener()
+
+            let generator = UINotificationFeedbackGenerator()
+            generator.notificationOccurred(.success)
+        } catch {
+            if currentMode == .direct {
+                cameraService.restoreAudioForWakeWord()
+            }
+            isProcessing = false
+            errorMessage = "Photo failed: \(error.localizedDescription)"
+            let generator = UINotificationFeedbackGenerator()
+            generator.notificationOccurred(.error)
+        }
+    }
+
     /// Capture a photo from the glasses camera and present the share sheet.
     /// Capture a photo and send it to the LLM for analysis (manual camera button).
     func captureAndAnalyzePhoto() async {
@@ -941,6 +1019,7 @@ class AppState: ObservableObject {
         isListening = true
         speechService.playAcknowledgmentTone()
         transcriptionService.startRecording()
+        updateLiveActivity()
     }
 
     // MARK: - Voice Commands
@@ -1196,6 +1275,7 @@ class AppState: ObservableObject {
         activePersona = nil
         wakeWordService.listenForStop = false
         speechService.playDisconnectTone()
+        updateLiveActivity()
         // End active conversation thread
         if Config.conversationPersistenceEnabled && conversationStore.activeThreadId != nil {
             conversationStore.endThread()

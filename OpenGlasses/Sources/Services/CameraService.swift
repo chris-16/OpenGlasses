@@ -1,25 +1,32 @@
 import Foundation
 import AVFoundation
 import Combine
+import Photos
 import MWDATCore
 import MWDATCamera
 import UIKit
 
-/// Service for capturing photos from Ray-Ban Meta smart glasses camera.
+/// Service for capturing photos and streaming video from Ray-Ban Meta smart glasses.
 ///
-/// Matches VisionClaw's pattern: the `StreamSession` is created once and reused across
-/// start/stop cycles. Permission is checked/requested once, not on every session start.
+/// Uses a single persistent `StreamSession` for both photo capture and video streaming,
+/// following Meta's official sample app pattern.
 @MainActor
 class CameraService: ObservableObject {
     @Published var lastPhoto: UIImage?
     @Published var isCaptureInProgress: Bool = false
     @Published var isStreaming: Bool = false
+    @Published var streamingStatus: StreamingStatus = .stopped
+
+    enum StreamingStatus: String {
+        case streaming, waiting, stopped
+    }
 
     private let deviceSelector = AutoDeviceSelector(wearables: Wearables.shared)
     private var streamSession: StreamSession?
     private var photoListenerToken: (any AnyListenerToken)?
     private var stateListenerToken: (any AnyListenerToken)?
     private var videoFrameListenerToken: (any AnyListenerToken)?
+    private var errorListenerToken: (any AnyListenerToken)?
     private var photoContinuation: CheckedContinuation<Data, Error>?
 
     /// Whether camera permission has been granted (cached to avoid re-checking).
@@ -37,13 +44,13 @@ class CameraService: ObservableObject {
     /// The most recent video frame captured from the glasses camera
     private(set) var latestFrame: UIImage?
 
-    // MARK: - Permission
-
-    /// Ensure camera permission is granted. Waits for SDK registration to complete first,
-    /// since checkPermissionStatus throws when registration state < 2.
-    /// Only shows the Meta dialog if not already approved.
     /// Optional callback to report SDK registration progress (state 0–3) back to UI.
     var onRegistrationProgress: ((Int) -> Void)?
+
+    /// Name of the Photos album where glasses photos are saved.
+    private static let albumName = "Glasses"
+
+    // MARK: - Permission
 
     private func waitForRegistration(minState: Int, timeoutSeconds: Double) async -> Int {
         let waitStart = ContinuousClock.now
@@ -59,181 +66,202 @@ class CameraService: ObservableObject {
     func ensurePermission() async throws {
         if permissionGranted { return }
 
-        // Camera permission requires SDK registration state 3 (.registered).
-        // State 2 gives PermissionError error 0. After backgrounding the SDK
-        // typically only auto-recovers to state 2 — we may need to nudge it.
         let regState = Wearables.shared.registrationState
         NSLog("[Camera] SDK state: %d (need 3 for camera permissions)", regState.rawValue)
         onRegistrationProgress?(regState.rawValue)
 
-        // --- iOS Camera Permission ---
-        // Meta Wearables SDK requires active iOS camera permissions first before it can register cleanly.
+        // iOS Camera Permission
         let iosVideoStatus = AVCaptureDevice.authorizationStatus(for: .video)
         if iosVideoStatus == .notDetermined {
             let granted = await AVCaptureDevice.requestAccess(for: .video)
-            if !granted {
-                throw CameraError.permissionDenied
-            }
+            if !granted { throw CameraError.permissionDenied }
         } else if iosVideoStatus == .denied || iosVideoStatus == .restricted {
             throw CameraError.permissionDenied
         }
 
-        // The camera permission APIs are only reliable once fully registered (state 3).
-        // State 2 often yields PermissionError from checkPermissionStatus(.camera).
-        // Do NOT call startRegistration() here — that belongs in the UI layer only.
+        // Wait for full SDK registration
         let settledState = await waitForRegistration(minState: 3, timeoutSeconds: 15)
         if settledState < 3 {
-            NSLog("[Camera] State %d is not fully registered. Cannot check camera permissions.", settledState)
+            NSLog("[Camera] State %d is not fully registered.", settledState)
             throw CameraError.sdkNotRegistered
         }
-        NSLog("[Camera] Registration settled at state: %d", settledState)
 
-        NSLog("[Camera] Checking permissions directly with the Meta SDK...")
-        
+        // Check/request Meta camera permission with retries
         let maxAttempts = 3
         for attempt in 0..<maxAttempts {
             if attempt > 0 {
                 NSLog("[Camera] Permission retry %d/%d...", attempt + 1, maxAttempts)
-                try? await Task.sleep(nanoseconds: 4_000_000_000) // 4s retry wait to give Bluetooth time to spin up
+                try? await Task.sleep(nanoseconds: 4_000_000_000)
             }
 
             do {
-                // Wait for SDK to be ready before calling checkPermissionStatus.
-                // Camera permission checks need full registration state 3.
                 let readyState = await waitForRegistration(minState: 3, timeoutSeconds: 10)
-                if readyState < 3 {
-                    throw CameraError.sdkNotRegistered
-                }
+                if readyState < 3 { throw CameraError.sdkNotRegistered }
 
-                // Rely on the SDK's internal connection state.
                 let status = try await Wearables.shared.checkPermissionStatus(.camera)
-                NSLog("[Camera] checkPermissionStatus returned: %@", String(describing: status))
+                NSLog("[Camera] checkPermissionStatus: %@", String(describing: status))
                 if status == .granted {
-                    NSLog("[Camera] Permission already granted")
                     permissionGranted = true
                     return
                 }
 
-                NSLog("[Camera] Permission not yet granted, requesting...")
-
                 let requestStatus = try await Wearables.shared.requestPermission(.camera)
-                NSLog("[Camera] requestPermission returned: %@", String(describing: requestStatus))
-                
-                guard requestStatus == .granted else {
-                    throw CameraError.permissionDenied
-                }
-                
+                guard requestStatus == .granted else { throw CameraError.permissionDenied }
                 permissionGranted = true
-                NSLog("[Camera] Permission granted via request")
                 return
             } catch {
                 NSLog("[Camera] Permission attempt %d/%d failed: %@",
                       attempt + 1, maxAttempts, error.localizedDescription)
-                
-                // Log registration state for diagnosis — but never call startRegistration() from here.
+
                 if let nsError = error as NSError?, nsError.domain == "MWDATCore.PermissionError" {
                     let currentState = Wearables.shared.registrationState.rawValue
-                    NSLog("[Camera] PermissionError at registration state %d — user must complete registration first", currentState)
-                    if currentState < 3 {
-                        throw CameraError.sdkNotRegistered
-                    }
+                    if currentState < 3 { throw CameraError.sdkNotRegistered }
                 }
-                
-                if (error as? CameraError) == .permissionDenied {
-                    throw CameraError.permissionDenied
-                }
-
-                if attempt == maxAttempts - 1 {
-                    throw CameraError.sdkNotRegistered
-                }
+                if (error as? CameraError) == .permissionDenied { throw error }
+                if attempt == maxAttempts - 1 { throw CameraError.sdkNotRegistered }
             }
         }
     }
 
+    // MARK: - Persistent Session
+
+    /// Ensure the persistent stream session exists. Creates it on first call.
+    private func ensureSession() {
+        guard streamSession == nil else { return }
+        let session = StreamSession(
+            streamSessionConfig: StreamSessionConfig(
+                videoCodec: .raw,
+                resolution: .high,
+                frameRate: 15
+            ),
+            deviceSelector: deviceSelector
+        )
+        streamSession = session
+        attachListeners(to: session)
+        NSLog("[Camera] Created persistent StreamSession (.high, 15fps)")
+    }
+
+    /// Attach all publishers to the session (state, video frames, photo data, errors).
+    private func attachListeners(to session: StreamSession) {
+        var frameCount = 0
+
+        stateListenerToken = session.statePublisher.listen { [weak self] state in
+            Task { @MainActor in
+                guard let self else { return }
+                NSLog("[Camera] State changed: %@", String(describing: state))
+                switch state {
+                case .streaming:
+                    self.streamingStatus = .streaming
+                case .waitingForDevice:
+                    self.streamingStatus = .waiting
+                case .stopped:
+                    self.streamingStatus = .stopped
+                    self.isStreaming = false
+                case .stopping, .starting, .paused:
+                    self.streamingStatus = .waiting
+                @unknown default:
+                    break
+                }
+            }
+        }
+
+        videoFrameListenerToken = session.videoFramePublisher.listen { [weak self] frame in
+            Task { @MainActor in
+                guard let self else { return }
+                frameCount += 1
+                if let image = frame.makeUIImage() {
+                    self.latestFrame = image
+                    if frameCount <= 3 || frameCount % 30 == 0 {
+                        NSLog("[Camera] Video frame #%d (%dx%d)",
+                              frameCount, Int(image.size.width), Int(image.size.height))
+                    }
+                    self.onVideoFrame?(image)
+                    self.framePublisher.send(image)
+                }
+            }
+        }
+
+        photoListenerToken = session.photoDataPublisher.listen { [weak self] photoData in
+            Task { @MainActor in
+                self?.handlePhotoData(photoData)
+            }
+        }
+
+        errorListenerToken = session.errorPublisher.listen { [weak self] error in
+            Task { @MainActor in
+                let message = Self.friendlyErrorMessage(error)
+                NSLog("[Camera] Error: %@", message)
+                self?.onDebugEvent?("Camera error: \(message)")
+            }
+        }
+    }
+
+    /// Wait for the session to reach `.streaming` state, starting it if necessary.
+    private func waitForStreaming(timeout: TimeInterval = 20) async throws {
+        guard let session = streamSession else { throw CameraError.captureFailed }
+
+        if session.state == .streaming { return }
+
+        // Start the session if not already running
+        if session.state == .stopped {
+            await session.start()
+        }
+
+        // Poll for streaming state
+        let deadline = ContinuousClock.now + .seconds(timeout)
+        while ContinuousClock.now < deadline {
+            if session.state == .streaming { return }
+            if session.state == .stopped {
+                NSLog("[Camera] Session stopped unexpectedly while waiting for streaming")
+                break
+            }
+            try await Task.sleep(nanoseconds: 500_000_000)
+        }
+
+        throw CameraError.streamNotReady
+    }
+
     // MARK: - Photo Capture
 
-    /// Capture a photo from the glasses camera.
-    /// Returns JPEG data of the captured photo.
+    /// Capture a photo from the glasses camera. Returns JPEG data.
+    /// Reuses the persistent session — starts it if needed, does NOT stop it after capture.
     func capturePhoto() async throws -> Data {
         isCaptureInProgress = true
         defer { isCaptureInProgress = false }
 
         try await ensurePermission()
+        ensureSession()
 
-        // Create a stream session and wait for .streaming state.
-        // If permission was just granted, the first session often fails (audio session
-        // reconfiguration kills it), so we retry with a fresh session.
-        var photoSession: StreamSession!
-        let maxAttempts = 2
-
-        for attempt in 1...maxAttempts {
-            NSLog("[Camera] Starting stream session (attempt %d/%d)", attempt, maxAttempts)
-
-            photoSession = StreamSession(
-                streamSessionConfig: StreamSessionConfig(
-                    videoCodec: .raw,
-                    resolution: .high,
-                    frameRate: 15
-                ),
-                deviceSelector: deviceSelector
-            )
-
-            // Listen for photo data
-            photoListenerToken = photoSession.photoDataPublisher.listen { [weak self] photoData in
-                Task { @MainActor in
-                    self?.handlePhotoData(photoData)
-                }
-            }
-
-            await photoSession.start()
-
-            // Wait for .streaming state (up to 3s)
-            var streamReady = false
-            for _ in 0..<6 {
-                try await Task.sleep(nanoseconds: 500_000_000)
-                let state = photoSession.state
-                NSLog("[Camera] Stream state: %@", String(describing: state))
-                if state == .streaming {
-                    streamReady = true
-                    break
-                }
-                if state == .stopped {
-                    NSLog("[Camera] Stream stopped unexpectedly")
-                    break
-                }
-            }
-
-            if streamReady {
+        // Wait for stream to be ready (start if needed)
+        var lastError: Error?
+        for attempt in 1...2 {
+            do {
+                try await waitForStreaming(timeout: attempt == 1 ? 10 : 20)
+                lastError = nil
                 break
-            }
-
-            // Clean up failed session before retry
-            NSLog("[Camera] Stream failed to reach .streaming, stopping session")
-            await photoSession.stop()
-            photoListenerToken = nil
-
-            if attempt < maxAttempts {
-                // Brief pause before retry — let audio session settle
-                try await Task.sleep(nanoseconds: 1_000_000_000)
+            } catch {
+                NSLog("[Camera] Streaming wait attempt %d failed: %@", attempt, error.localizedDescription)
+                lastError = error
+                if attempt < 2 {
+                    // Reset session and retry
+                    await resetSession()
+                    ensureSession()
+                    try await Task.sleep(nanoseconds: 1_000_000_000)
+                }
             }
         }
+        if let error = lastError { throw error }
 
-        guard photoSession.state == .streaming else {
-            await photoSession.stop()
-            photoListenerToken = nil
-            throw CameraError.captureFailed
-        }
-
-        // Capture the photo
+        // Capture using continuation
         let photoData: Data = try await withCheckedThrowingContinuation { continuation in
             self.photoContinuation = continuation
 
             NSLog("[Camera] Calling capturePhoto(format: .jpeg)...")
-            let success = photoSession.capturePhoto(format: .jpeg)
-            NSLog("[Camera] capturePhoto returned: %@", success ? "true" : "false")
+            let success = streamSession!.capturePhoto(format: .jpeg)
             if !success {
                 self.photoContinuation = nil
                 continuation.resume(throwing: CameraError.captureFailed)
+                return
             }
 
             // Timeout after 5 seconds
@@ -246,13 +274,15 @@ class CameraService: ObservableObject {
             }
         }
 
-        // Stop the photo session
-        await photoSession.stop()
-        photoListenerToken = nil
-
-        // Store the image for display
         if let image = UIImage(data: photoData) {
             lastPhoto = image
+        }
+
+        // Stop streaming after capture to save battery (unless explicitly streaming)
+        if !isStreaming {
+            if let session = streamSession {
+                await session.stop()
+            }
         }
 
         print("📸 Photo captured: \(photoData.count) bytes")
@@ -268,62 +298,18 @@ class CameraService: ObservableObject {
     // MARK: - Continuous Video Streaming (for Gemini Live)
 
     /// Start continuous video streaming from the glasses camera.
-    /// Frames are delivered via `onVideoFrame` callback and stored in `latestFrame`.
-    ///
-    /// Following VisionClaw's pattern: the StreamSession is created once and reused.
-    /// Permission is handled separately via `ensurePermission()`.
     func startStreaming() async throws {
         guard !isStreaming else { return }
 
         try await ensurePermission()
+        ensureSession()
+        try await waitForStreaming()
 
-        // Create the stream session if we don't have one yet (first start or after resolution change).
-        // VisionClaw creates the session once in init and reuses it across start/stop cycles.
-        if streamSession == nil {
-            let session = StreamSession(
-                streamSessionConfig: StreamSessionConfig(
-                    videoCodec: .raw,
-                    resolution: .low,
-                    frameRate: 24
-                ),
-                deviceSelector: deviceSelector
-            )
-            streamSession = session
-            attachVideoListeners(to: session)
-            NSLog("[Camera] Created new StreamSession (.low, 24fps)")
-        }
-
-        await streamSession!.start()
         isStreaming = true
         NSLog("[Camera] Streaming started")
     }
 
-    /// Attach video frame listeners to a StreamSession.
-    private func attachVideoListeners(to session: StreamSession) {
-        var frameCount = 0
-        videoFrameListenerToken = session.videoFramePublisher.listen { [weak self] frame in
-            Task { @MainActor in
-                guard let self else { return }
-                frameCount += 1
-                if let image = frame.makeUIImage() {
-                    self.latestFrame = image
-                    if frameCount <= 3 || frameCount % 30 == 0 {
-                        NSLog("[Camera] Video frame #%d received (%dx%d)",
-                              frameCount, Int(image.size.width), Int(image.size.height))
-                    }
-                    self.onVideoFrame?(image)
-                    self.framePublisher.send(image)
-                } else {
-                    if frameCount <= 3 {
-                        NSLog("[Camera] Frame #%d: makeUIImage() returned nil", frameCount)
-                    }
-                }
-            }
-        }
-    }
-
-    /// Stop continuous video streaming.
-    /// The StreamSession is stopped but kept alive for reuse (matching VisionClaw's pattern).
+    /// Stop continuous video streaming. Session is kept alive for reuse.
     func stopStreaming() async {
         guard isStreaming else { return }
         if let session = streamSession {
@@ -331,23 +317,90 @@ class CameraService: ObservableObject {
         }
         isStreaming = false
         latestFrame = nil
-        NSLog("[Camera] Streaming stopped (session kept alive for reuse)")
+        NSLog("[Camera] Streaming stopped (session kept alive)")
+    }
+
+    /// Reset the session completely (for error recovery).
+    private func resetSession() async {
+        if let session = streamSession {
+            await session.stop()
+        }
+        stateListenerToken = nil
+        videoFrameListenerToken = nil
+        photoListenerToken = nil
+        errorListenerToken = nil
+        streamSession = nil
+        NSLog("[Camera] Session reset")
     }
 
     /// Tear down everything — called on mode switch or app termination.
     func tearDown() async {
         await stopStreaming()
-        videoFrameListenerToken = nil
-        streamSession = nil
+        await resetSession()
         permissionGranted = false
         NSLog("[Camera] Torn down completely")
     }
 
-    /// Save photo to the camera roll
+    // MARK: - Photo Library
+
+    /// Save photo data to the "Glasses" album in the photo library.
     func saveToPhotoLibrary(_ data: Data) {
         guard let image = UIImage(data: data) else { return }
-        UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
-        print("📸 Photo saved to camera roll")
+
+        PHPhotoLibrary.requestAuthorization(for: .addOnly) { status in
+            guard status == .authorized || status == .limited else {
+                NSLog("[Camera] Photo library access denied")
+                return
+            }
+
+            PHPhotoLibrary.shared().performChanges {
+                let creationRequest = PHAssetChangeRequest.creationRequestForAsset(from: image)
+
+                // Find or create the "Glasses" album
+                if let album = self.fetchGlassesAlbum() {
+                    let albumChangeRequest = PHAssetCollectionChangeRequest(for: album)
+                    if let placeholder = creationRequest.placeholderForCreatedAsset {
+                        albumChangeRequest?.addAssets([placeholder] as NSArray)
+                    }
+                }
+            } completionHandler: { success, error in
+                if success {
+                    print("📸 Photo saved to Glasses album")
+                } else if let error {
+                    NSLog("[Camera] Save to album failed: %@", error.localizedDescription)
+                    // Fallback: save without album
+                    UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
+                    print("📸 Photo saved to camera roll (album unavailable)")
+                }
+            }
+        }
+    }
+
+    /// Fetch the "Glasses" album, creating it if it doesn't exist.
+    private nonisolated func fetchGlassesAlbum() -> PHAssetCollection? {
+        let fetchOptions = PHFetchOptions()
+        fetchOptions.predicate = NSPredicate(format: "title = %@", CameraService.albumName)
+        let collections = PHAssetCollection.fetchAssetCollections(with: .album, subtype: .any, options: fetchOptions)
+
+        if let existing = collections.firstObject {
+            return existing
+        }
+
+        // Create the album synchronously
+        var localIdentifier: String?
+        do {
+            try PHPhotoLibrary.shared().performChangesAndWait {
+                let createRequest = PHAssetCollectionChangeRequest.creationRequestForAssetCollection(withTitle: CameraService.albumName)
+                localIdentifier = createRequest.placeholderForCreatedAssetCollection.localIdentifier
+            }
+        } catch {
+            NSLog("[Camera] Failed to create Glasses album: %@", error.localizedDescription)
+            return nil
+        }
+
+        guard let identifier = localIdentifier else { return nil }
+        let result = PHAssetCollection.fetchAssetCollections(withLocalIdentifiers: [identifier], options: nil)
+        return result.firstObject
     }
 
     // MARK: - Audio Session Helpers
@@ -355,6 +408,23 @@ class CameraService: ObservableObject {
     /// Restore audio session configuration for wake word detection after camera streaming.
     func restoreAudioForWakeWord() {
         // No-op: audio session management is handled by WakeWordService
+    }
+
+    // MARK: - Error Mapping
+
+    /// Map StreamSession errors to user-friendly descriptions.
+    private static func friendlyErrorMessage(_ error: any Error) -> String {
+        let description = String(describing: error).lowercased()
+        if description.contains("hingesclosed") {
+            return "Glasses hinges are closed — open them to use the camera"
+        } else if description.contains("thermalcritical") || description.contains("thermal") {
+            return "Glasses are too hot — let them cool down"
+        } else if description.contains("permission") {
+            return "Camera permission required"
+        } else if description.contains("devicenotavailable") || description.contains("notavailable") {
+            return "Glasses camera not available — check Bluetooth connection"
+        }
+        return error.localizedDescription
     }
 }
 
@@ -364,6 +434,7 @@ enum CameraError: LocalizedError {
     case timeout
     case notConnected
     case sdkNotRegistered
+    case streamNotReady
 
     var errorDescription: String? {
         switch self {
@@ -372,6 +443,7 @@ enum CameraError: LocalizedError {
         case .timeout: return "Photo capture timed out"
         case .notConnected: return "Glasses not connected"
         case .sdkNotRegistered: return "Meta SDK not registered — open Meta app first"
+        case .streamNotReady: return "Camera stream not ready — try again"
         }
     }
 }
