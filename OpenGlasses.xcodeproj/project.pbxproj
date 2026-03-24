@@ -197,7 +197,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		027414D3FDBBF808E2E0F3DB /* GlassesActivityWidget.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = GlassesActivityWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		027414D3FDBBF808E2E0F3DB /* GlassesActivityWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = GlassesActivityWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		0679379BFB36E617B22C6104 /* GeocodingHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeocodingHelper.swift; sourceTree = "<group>"; };
 		094048ED5649B9EECF38A011 /* FoodAnalysisTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodAnalysisTool.swift; sourceTree = "<group>"; };
 		09943AB947BF7415AC20AD4C /* MCPServersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MCPServersView.swift; sourceTree = "<group>"; };
@@ -1053,6 +1053,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = B9L8ANZQZX;
 				INFOPLIST_FILE = OpenGlassesWatch/Info.plist;
 				PRODUCT_BUNDLE_IDENTIFIER = com.openglasses.app.watchkitapp;
 				SDKROOT = watchos;
@@ -1066,6 +1067,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = B9L8ANZQZX;
 				INFOPLIST_FILE = OpenGlassesWatch/Info.plist;
 				PRODUCT_BUNDLE_IDENTIFIER = com.openglasses.app.watchkitapp;
 				SDKROOT = watchos;
@@ -1134,6 +1136,7 @@
 		D5176476212E023ADFDFF267 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				DEVELOPMENT_TEAM = B9L8ANZQZX;
 				INFOPLIST_FILE = GlassesActivityWidget/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1151,6 +1154,7 @@
 		F12FBB03E632F97AE433EAE3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				DEVELOPMENT_TEAM = B9L8ANZQZX;
 				INFOPLIST_FILE = GlassesActivityWidget/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

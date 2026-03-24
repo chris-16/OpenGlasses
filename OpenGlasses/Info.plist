@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleDisplayName</key>
+	<string>OpenGlasses</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>OpenGlasses</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>mwdat-688603774243722</string>
+			</array>
+		</dict>
+	</array>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>fb-viewapp</string>
+		<string>comgooglemaps</string>
+		<string>podcasts</string>
+		<string>music</string>
+		<string>calshow</string>
+		<string>photos-redirect</string>
+		<string>mobilenotes</string>
+		<string>x-apple-reminderkit</string>
+		<string>applenews</string>
+		<string>stocks</string>
+		<string>voicememos</string>
+		<string>translate</string>
+		<string>fitnessapp</string>
+		<string>shortcuts</string>
+		<string>x-apple-health</string>
+		<string>shoebox</string>
+		<string>shareddocuments</string>
+		<string>youtube</string>
+		<string>spotify</string>
+		<string>whatsapp</string>
+		<string>instagram</string>
+		<string>twitter</string>
+		<string>tg</string>
+		<string>reddit</string>
+		<string>snssdk1233</string>
+		<string>nflx</string>
+		<string>uber</string>
+		<string>lyft</string>
+		<string>weixin</string>
+		<string>wechat</string>
+		<string>alipay</string>
+		<string>alipays</string>
+		<string>baidumap</string>
+		<string>iosamap</string>
+		<string>qqmap</string>
+		<string>mqq</string>
+		<string>mqqapi</string>
+		<string>weibo</string>
+		<string>sinaweibo</string>
+		<string>dingtalk</string>
+		<string>snssdk1128</string>
+		<string>taobao</string>
+		<string>tmall</string>
+		<string>ctrip</string>
+		<string>eleme</string>
+		<string>meituan</string>
+		<string>dianping</string>
+		<string>xhsdiscover</string>
+		<string>bilibili</string>
+		<string>kakaotalk</string>
+		<string>line</string>
+		<string>zalo</string>
+	</array>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>MWDAT</key>
+	<dict>
+		<key>AppLinkURLScheme</key>
+		<string>https://straff2002.github.io/OpenGlasses</string>
+		<key>MetaAppID</key>
+		<string>688603774243722</string>
+		<key>ClientToken</key>
+		<string>AR|688603774243722|906db0d1b28450fdb718401ca16b9d60</string>
+		<key>TeamID</key>
+		<string>$(DEVELOPMENT_TEAM)</string>
+	</dict>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>OpenGlasses uses Bluetooth to connect to your Ray-Ban Meta smart glasses.</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>OpenGlasses uses Bluetooth to connect to your Ray-Ban Meta smart glasses.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>OpenGlasses needs camera access to capture photos and video for the AI to analyze.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>OpenGlasses uses your location to provide contextually relevant answers based on where you are.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>OpenGlasses needs microphone access to listen for wake words and transcribe your voice commands.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>OpenGlasses saves photos taken with your Ray-Ban Meta glasses to your photo library.</string>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>OpenGlasses accesses your calendar to tell you about upcoming events and create new ones hands-free.</string>
+	<key>NSCalendarsUsageDescription</key>
+	<string>OpenGlasses accesses your calendar to tell you about upcoming events and create new ones hands-free.</string>
+	<key>NSContactsUsageDescription</key>
+	<string>OpenGlasses looks up contacts so you can make calls and send messages by name through your glasses.</string>
+	<key>NSRemindersFullAccessUsageDescription</key>
+	<string>OpenGlasses creates and manages reminders so you can set them hands-free through your glasses.</string>
+	<key>NSRemindersUsageDescription</key>
+	<string>OpenGlasses creates and manages reminders so you can set them hands-free through your glasses.</string>
+	<key>NSMotionUsageDescription</key>
+	<string>OpenGlasses reads your step count and walking distance to report daily activity.</string>
+	<key>NSHomeKitUsageDescription</key>
+	<string>OpenGlasses controls your smart home devices hands-free through your glasses.</string>
+	<key>NSAppleMusicUsageDescription</key>
+	<string>OpenGlasses plays music and controls playback hands-free through your glasses.</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>OpenGlasses reads your health data (steps, workouts) to report fitness activity through your glasses.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>OpenGlasses saves workout data from fitness coaching sessions to Apple Health.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>OpenGlasses uses speech recognition to detect the wake word and transcribe your questions for Claude.</string>
+	<key>UISupportedExternalAccessoryProtocols</key>
+	<array>
+		<string>com.meta.ar.wearable</string>
+	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+		<string>bluetooth-central</string>
+		<string>bluetooth-peripheral</string>
+		<string>external-accessory</string>
+	</array>
+	<key>UILaunchScreen</key>
+	<dict/>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+</dict>
+</plist>

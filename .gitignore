@@ -22,8 +22,6 @@ DerivedData
 .swiftpm/
 Packages/
 Package.pins
-Package.resolved
-*.xcodeproj
 
 # CocoaPods
 Pods/
@@ -43,5 +41,9 @@ CLAUDE.md
 AGENTS.md
 impeccable-style-universal/
 
-# Credentials — contains Meta App ID and Client Token
-OpenGlasses/Info.plist
+# Note: Info.plist and xcodeproj are tracked for Xcode Cloud CI
+
+# Xcode user data (don't track)
+xcuserdata/
+*.xcuserstate
+*.pbxproj.backup
