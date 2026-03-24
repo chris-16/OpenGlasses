@@ -149,6 +149,25 @@ struct SettingsView: View {
                     Text("Choose a prompt preset or create your own to shape how the AI responds.")
                 }
 
+                // MARK: Agent Personality
+                Section {
+                    NavigationLink {
+                        AgentPersonalityView(agentDocs: appState.agentDocs)
+                    } label: {
+                        HStack {
+                            Label("Agent Personality", systemImage: "heart.text.clipboard")
+                            Spacer()
+                            if Config.agentPersonalityEnabled {
+                                Text("On")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                } footer: {
+                    Text("Give your glasses their own personality with soul.md, skills, and persistent memory. Compatible with OpenClaw agent conventions.")
+                }
+
                 // MARK: Intelligence
                 Section {
                     Toggle("Intent Classifier", isOn: $intentClassifierEnabled)

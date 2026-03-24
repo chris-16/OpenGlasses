@@ -1,0 +1,137 @@
+import SwiftUI
+
+/// Settings view for the Agent Personality mode.
+/// When enabled, the agent uses soul.md/skills.md/memory.md instead of prompt presets.
+struct AgentPersonalityView: View {
+    @ObservedObject var agentDocs: AgentDocumentStore
+    @State private var enabled = Config.agentPersonalityEnabled
+    @State private var editingDocument: AgentDocumentStore.DocumentType?
+
+    var body: some View {
+        List {
+            Section {
+                Toggle("Agent Personality", isOn: $enabled)
+                    .onChange(of: enabled) { _, on in
+                        Config.setAgentPersonalityEnabled(on)
+                    }
+            } header: {
+                Text("Personality Mode")
+            } footer: {
+                Text("When enabled, the agent uses its own soul, skills, and memory documents instead of prompt presets. It learns about you over time and develops its own personality. Disable to return to standard prompt mode.")
+            }
+
+            if enabled {
+                Section {
+                    ForEach(AgentDocumentStore.DocumentType.allCases) { type in
+                        Button {
+                            editingDocument = type
+                        } label: {
+                            HStack(spacing: 12) {
+                                Image(systemName: type.icon)
+                                    .font(.title3)
+                                    .foregroundStyle(.tint)
+                                    .frame(width: 28)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    HStack(spacing: 6) {
+                                        Text(type.displayName)
+                                            .foregroundStyle(.primary)
+                                        Text(type.filename)
+                                            .font(.caption2)
+                                            .foregroundStyle(.secondary)
+                                            .padding(.horizontal, 6)
+                                            .padding(.vertical, 2)
+                                            .background(.quaternary, in: Capsule())
+                                    }
+                                    Text(type.description)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                Spacer()
+                                Text("\(agentDocs.content(for: type).count) chars")
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                                Image(systemName: "chevron.right")
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                } header: {
+                    Text("Agent Documents")
+                } footer: {
+                    Text("These follow the OpenClaw agent convention. The soul defines who the agent is, skills define what it can do, and memory stores what it learns. The agent can update its own memory but never modify code — that requires a connected OpenClaw.")
+                }
+
+                if !Config.agentOnboardingComplete {
+                    Section {
+                        Button {
+                            Config.setAgentOnboardingComplete(true)
+                        } label: {
+                            Label("Start Onboarding", systemImage: "person.crop.circle.badge.questionmark")
+                        }
+                    } footer: {
+                        Text("The agent will ask you questions to learn about you and customize its personality. Say \"Hey OpenGlasses\" to begin.")
+                    }
+                }
+
+                Section {
+                    Button(role: .destructive) {
+                        resetToDefaults()
+                    } label: {
+                        Label("Reset to Defaults", systemImage: "arrow.counterclockwise")
+                    }
+                } footer: {
+                    Text("Resets soul, skills, and memory to factory defaults. Your learned memories will be lost.")
+                }
+            }
+        }
+        .navigationTitle("Agent Personality")
+        .sheet(item: $editingDocument) { type in
+            AgentDocumentEditorView(type: type, store: agentDocs)
+        }
+    }
+
+    private func resetToDefaults() {
+        for type in AgentDocumentStore.DocumentType.allCases {
+            agentDocs.save(type, content: type.defaultContent)
+        }
+        Config.setAgentOnboardingComplete(false)
+    }
+}
+
+// MARK: - Document Editor
+
+struct AgentDocumentEditorView: View {
+    @Environment(\.dismiss) private var dismiss
+    let type: AgentDocumentStore.DocumentType
+    @ObservedObject var store: AgentDocumentStore
+
+    @State private var content = ""
+
+    var body: some View {
+        NavigationStack {
+            TextEditor(text: $content)
+                .font(.system(.body, design: .monospaced))
+                .foregroundStyle(.primary)
+                .scrollContentBackground(.hidden)
+                .padding(12)
+                .background(Color(.systemGray6))
+                .navigationTitle(type.filename)
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") { dismiss() }
+                    }
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Save") {
+                            store.save(type, content: content)
+                            dismiss()
+                        }
+                    }
+                }
+                .onAppear {
+                    content = store.content(for: type)
+                }
+        }
+    }
+}

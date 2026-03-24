@@ -118,8 +118,14 @@ class LLMService: ObservableObject {
     private let maxToolCallIterations = 5
 
     /// Build the full system prompt, optionally including location, tools, memory, and vision context
-    private static func buildSystemPrompt(locationContext: String?, includeTools: Bool, includeOpenClaw: Bool, hasImage: Bool, nativeToolNames: [String] = [], memoryContext: String? = nil) -> String {
-        var prompt = Config.systemPrompt
+    private static func buildSystemPrompt(locationContext: String?, includeTools: Bool, includeOpenClaw: Bool, hasImage: Bool, nativeToolNames: [String] = [], memoryContext: String? = nil, agentContext: String? = nil) -> String {
+        // Agent personality mode: soul.md + skills.md + memory.md replace the standard prompt
+        var prompt: String
+        if Config.agentPersonalityEnabled, let agentContext, !agentContext.isEmpty {
+            prompt = agentContext
+        } else {
+            prompt = Config.systemPrompt
+        }
 
         // Ensure vision awareness is always present, even if user has a custom system prompt
         if !prompt.lowercased().contains("vision") && !prompt.lowercased().contains("camera") {
@@ -275,7 +281,7 @@ class LLMService: ObservableObject {
         return prompt
     }
 
-    func sendMessage(_ text: String, locationContext: String? = nil, imageData: Data? = nil, memoryContext: String? = nil) async throws -> String {
+    func sendMessage(_ text: String, locationContext: String? = nil, imageData: Data? = nil, memoryContext: String? = nil, agentContext: String? = nil) async throws -> String {
         isProcessing = true
         defer { isProcessing = false }
 
@@ -288,7 +294,7 @@ class LLMService: ObservableObject {
         let includeOpenClaw = Config.isOpenClawConfigured && openClawBridge != nil
         let includeTools = hasNativeTools || includeOpenClaw
         let nativeToolNames = nativeToolRouter?.registry.toolNames ?? []
-        let fullPrompt = Self.buildSystemPrompt(locationContext: locationContext, includeTools: includeTools, includeOpenClaw: includeOpenClaw, hasImage: imageData != nil, nativeToolNames: nativeToolNames, memoryContext: memoryContext)
+        let fullPrompt = Self.buildSystemPrompt(locationContext: locationContext, includeTools: includeTools, includeOpenClaw: includeOpenClaw, hasImage: imageData != nil, nativeToolNames: nativeToolNames, memoryContext: memoryContext, agentContext: agentContext)
 
         var toolsLabel = ""
         if hasNativeTools { toolsLabel += " [NativeTools]" }

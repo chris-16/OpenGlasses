@@ -1186,6 +1186,27 @@ struct Config {
         UserDefaults.standard.set(enabled, forKey: "userMemoryEnabled")
     }
 
+    // MARK: - Agent Personality Mode
+
+    /// When enabled, the agent uses soul.md/skills.md/memory.md instead of prompt presets.
+    /// The agent has its own identity and learns about the user over time.
+    static var agentPersonalityEnabled: Bool {
+        UserDefaults.standard.bool(forKey: "agentPersonalityEnabled")
+    }
+
+    static func setAgentPersonalityEnabled(_ enabled: Bool) {
+        UserDefaults.standard.set(enabled, forKey: "agentPersonalityEnabled")
+    }
+
+    /// Whether the agent has completed its initial onboarding questions.
+    static var agentOnboardingComplete: Bool {
+        UserDefaults.standard.bool(forKey: "agentOnboardingComplete")
+    }
+
+    static func setAgentOnboardingComplete(_ complete: Bool) {
+        UserDefaults.standard.set(complete, forKey: "agentOnboardingComplete")
+    }
+
     // MARK: - Conversation Persistence
 
     static var conversationPersistenceEnabled: Bool {

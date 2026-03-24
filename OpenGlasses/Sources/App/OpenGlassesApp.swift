@@ -243,6 +243,7 @@ class AppState: ObservableObject {
     let privacyFilter = PrivacyFilterService()
     let webRTCStreaming = WebRTCStreamingService()
     let liveActivityManager = LiveActivityManager()
+    let agentDocs = AgentDocumentStore()
 
     /// Pending item to show in the share sheet
     @Published var pendingShareItem: ShareItem?
@@ -790,6 +791,11 @@ class AppState: ObservableObject {
         } else {
             Task { await returnToWakeWord() }
         }
+    }
+
+    /// The agent context (soul.md + skills.md + memory.md) if personality mode is enabled.
+    var currentAgentContext: String? {
+        Config.agentPersonalityEnabled ? agentDocs.agentContext() : nil
     }
 
     /// Push current state to the Live Activity on Lock Screen / Dynamic Island.
