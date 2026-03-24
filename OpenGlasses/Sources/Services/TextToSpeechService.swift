@@ -343,19 +343,23 @@ class TextToSpeechService: NSObject, ObservableObject, AVSpeechSynthesizerDelega
     func startThinkingSound() {
         stopThinkingSound()
 
-        // Generate a short, gentle "bloop" tone (sine wave at 440Hz, 0.15s, low volume)
+        // Soft, warm pulse — low frequency with gentle fade in/out
         let sampleRate: Double = 44100
-        let duration: Double = 0.15
-        let frequency: Double = 440
-        let amplitude: Float = 0.08
+        let duration: Double = 0.3
+        let frequency: Double = 280  // Lower pitch, warmer tone
+        let amplitude: Float = 0.04  // Half the previous amplitude
         let frameCount = Int(sampleRate * duration)
 
         var samples = [Float](repeating: 0, count: frameCount)
         for i in 0..<frameCount {
             let t = Float(i) / Float(sampleRate)
-            // Sine wave with fade in/out envelope
-            let envelope = sin(Float.pi * t / Float(duration))
-            samples[i] = amplitude * envelope * sin(2 * Float.pi * Float(frequency) * t)
+            // Smooth raised-cosine envelope (gentler than sine)
+            let progress = t / Float(duration)
+            let envelope = 0.5 * (1.0 - cos(2.0 * Float.pi * progress))
+            // Mix fundamental with soft overtone for warmth
+            let fundamental = sin(2 * Float.pi * Float(frequency) * t)
+            let overtone = 0.3 * sin(2 * Float.pi * Float(frequency * 2) * t)
+            samples[i] = amplitude * envelope * (fundamental + overtone)
         }
 
         // Convert to 16-bit PCM WAV
@@ -386,11 +390,11 @@ class TextToSpeechService: NSObject, ObservableObject, AVSpeechSynthesizerDelega
 
         do {
             thinkingPlayer = try AVAudioPlayer(data: wav)
-            thinkingPlayer?.volume = 0.3
+            thinkingPlayer?.volume = 0.15
 
-            // Play the bloop every 2 seconds
+            // Gentle pulse every 3 seconds
             thinkingPlayer?.play()
-            thinkingTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { _ in
+            thinkingTimer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: true) { _ in
                 Task { @MainActor [weak self] in
                     self?.thinkingPlayer?.currentTime = 0
                     self?.thinkingPlayer?.play()
