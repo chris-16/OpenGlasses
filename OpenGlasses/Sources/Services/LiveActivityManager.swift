@@ -18,13 +18,18 @@ class LiveActivityManager {
         }
 
         let attributes = GlassesActivityAttributes(glassesName: glassesName)
+        let personas = Config.enabledPersonas.prefix(3).map {
+            GlassesActivityAttributes.ContentState.PersonaButton(id: $0.id, name: $0.name)
+        }
         let initialState = GlassesActivityAttributes.ContentState(
             isConnected: false,
             isListening: false,
             isSpeaking: false,
             isProcessing: false,
             lastResponseSnippet: "",
-            deviceName: nil
+            deviceName: nil,
+            batteryLevel: nil,
+            personaButtons: personas
         )
 
         do {
@@ -47,18 +52,25 @@ class LiveActivityManager {
         isSpeaking: Bool = false,
         isProcessing: Bool = false,
         lastResponse: String = "",
-        deviceName: String? = nil
+        deviceName: String? = nil,
+        batteryLevel: Int? = nil
     ) {
         guard let activity = currentActivity else { return }
 
         let snippet = String(lastResponse.prefix(80))
+        // Pass top 3 enabled personas as quick-launch buttons
+        let personas = Config.enabledPersonas.prefix(3).map {
+            GlassesActivityAttributes.ContentState.PersonaButton(id: $0.id, name: $0.name)
+        }
         let state = GlassesActivityAttributes.ContentState(
             isConnected: isConnected,
             isListening: isListening,
             isSpeaking: isSpeaking,
             isProcessing: isProcessing,
             lastResponseSnippet: snippet,
-            deviceName: deviceName
+            deviceName: deviceName,
+            batteryLevel: batteryLevel,
+            personaButtons: personas
         )
 
         Task {
@@ -75,7 +87,9 @@ class LiveActivityManager {
             isSpeaking: false,
             isProcessing: false,
             lastResponseSnippet: "",
-            deviceName: nil
+            deviceName: nil,
+            batteryLevel: nil,
+            personaButtons: []
         )
 
         Task {

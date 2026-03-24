@@ -37,7 +37,9 @@ class WatchConnectivityManager: NSObject, ObservableObject {
             "isProcessing": appState.isProcessing,
             "isListening": appState.isListening,
             "lastResponse": String(appState.lastResponse.prefix(200)),
-            "deviceName": appState.glassesService.deviceName ?? ""
+            "deviceName": appState.glassesService.deviceName ?? "",
+            "batteryLevel": appState.glassesService.batteryLevel ?? 0,
+            "personas": Config.enabledPersonas.prefix(3).map { ["id": $0.id, "name": $0.name] }
         ]
 
         // Use application context for persistent state
@@ -94,6 +96,22 @@ extension WatchConnectivityManager: WCSessionDelegate {
                 try? await Task.sleep(nanoseconds: 100_000_000)
                 await appState.handleWakeWordDetected()
                 replyHandler(["status": "listening"])
+
+            case "persona":
+                // Activate a specific persona agent and start listening
+                if let personaId = message["persona_id"] as? String,
+                   let persona = Config.enabledPersonas.first(where: { $0.id == personaId }) {
+                    appState.activePersona = persona
+                    Config.setActiveModelId(persona.modelId)
+                    Config.setActivePresetId(persona.presetId)
+                    appState.llmService.refreshActiveModel()
+                    appState.wakeWordService.stopListening()
+                    try? await Task.sleep(nanoseconds: 100_000_000)
+                    await appState.handleWakeWordDetected()
+                    replyHandler(["status": "listening", "persona": persona.name])
+                } else {
+                    replyHandler(["error": "Persona not found"])
+                }
 
             case "photo":
                 await appState.captureAndAnalyzePhoto()

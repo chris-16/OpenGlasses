@@ -14,5 +14,15 @@ struct GlassesActivityAttributes: ActivityAttributes {
         var isProcessing: Bool
         var lastResponseSnippet: String
         var deviceName: String?
+        var batteryLevel: Int?  // 0-100, nil if unknown
+
+        /// Top 3 persona names for widget/watch quick-launch buttons.
+        /// Each entry is (id, name). Empty if no personas configured.
+        var personaButtons: [PersonaButton]
+
+        struct PersonaButton: Codable, Hashable {
+            var id: String
+            var name: String
+        }
     }
 }

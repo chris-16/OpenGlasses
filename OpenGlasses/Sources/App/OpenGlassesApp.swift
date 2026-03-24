@@ -128,6 +128,25 @@ struct OpenGlassesApp: App {
                         return
                     }
 
+                    // Handle persona quick-launch from widget/watch
+                    if url.scheme == "openglasses", url.host == "persona" {
+                        let personaId = url.lastPathComponent
+                        Task { @MainActor in
+                            if let persona = Config.enabledPersonas.first(where: { $0.id == personaId }) {
+                                // Activate this persona's model + prompt
+                                appState.activePersona = persona
+                                Config.setActiveModelId(persona.modelId)
+                                Config.setActivePresetId(persona.presetId)
+                                appState.llmService.refreshActiveModel()
+                                // Start listening immediately — skip wake word
+                                appState.wakeWordService.stopListening()
+                                try? await Task.sleep(nanoseconds: 100_000_000)
+                                await appState.handleWakeWordDetected()
+                            }
+                        }
+                        return
+                    }
+
                     // Handle widget quick action deep links
                     if url.scheme == "openglasses", url.host == "action" {
                         let action = url.lastPathComponent
@@ -851,7 +870,8 @@ class AppState: ObservableObject {
             isSpeaking: speechService.isSpeaking,
             isProcessing: isProcessing,
             lastResponse: lastResponse,
-            deviceName: glassesService.deviceName
+            deviceName: glassesService.deviceName,
+            batteryLevel: glassesService.batteryLevel
         )
     }
 

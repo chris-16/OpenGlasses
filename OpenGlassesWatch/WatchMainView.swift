@@ -7,8 +7,8 @@ struct WatchMainView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 16) {
-                // Connection status
+            VStack(spacing: 12) {
+                // Connection + battery status
                 HStack(spacing: 6) {
                     Circle()
                         .fill(connectivity.isReachable ? .green : .red)
@@ -18,13 +18,28 @@ struct WatchMainView: View {
                          : "iPhone Not Reachable")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
+                    if let battery = connectivity.batteryLevel, battery > 0 {
+                        Text("\(battery)%")
+                            .font(.caption2)
+                            .foregroundStyle(battery < 20 ? .red : .secondary)
+                    }
                 }
 
-                // Quick action buttons
-                VStack(spacing: 10) {
+                // Persona agent buttons (from app context)
+                if !connectivity.personas.isEmpty {
+                    VStack(spacing: 8) {
+                        ForEach(connectivity.personas, id: \.id) { persona in
+                            personaButton(persona)
+                        }
+                    }
+
+                    Divider()
+                }
+
+                // Fallback generic actions
+                VStack(spacing: 8) {
                     actionButton(label: "Ask", icon: "mic.fill", command: "ask")
                     actionButton(label: "Photo", icon: "camera.fill", command: "photo")
-                    actionButton(label: "Describe", icon: "eye", command: "describe")
                 }
 
                 // Response
@@ -41,7 +56,6 @@ struct WatchMainView: View {
                     .padding(.top, 4)
                 }
 
-                // Error
                 if let error = errorMessage {
                     Text(error)
                         .font(.caption2)
@@ -51,6 +65,36 @@ struct WatchMainView: View {
             .padding()
         }
         .navigationTitle("OpenGlasses")
+    }
+
+    @ViewBuilder
+    private func personaButton(_ persona: WatchConnectivityService.PersonaInfo) -> some View {
+        Button {
+            WKInterfaceDevice.current().play(.start)
+            errorMessage = nil
+            connectivity.sendCommand("persona", extra: ["persona_id": persona.id]) { error in
+                if let error {
+                    errorMessage = error
+                    WKInterfaceDevice.current().play(.failure)
+                } else {
+                    WKInterfaceDevice.current().play(.success)
+                }
+            }
+        } label: {
+            HStack {
+                Image(systemName: "person.fill")
+                    .font(.body)
+                    .foregroundStyle(.cyan)
+                Text(persona.name)
+                    .font(.body)
+                Spacer()
+                if connectivity.isProcessing {
+                    ProgressView()
+                }
+            }
+            .padding(.vertical, 8)
+        }
+        .disabled(!connectivity.isReachable || connectivity.isProcessing)
     }
 
     @ViewBuilder
