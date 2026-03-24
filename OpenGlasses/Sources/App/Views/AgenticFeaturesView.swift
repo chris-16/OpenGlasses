@@ -104,6 +104,24 @@ struct AgenticFeaturesView: View {
                     Text("These follow the OpenClaw agent convention. The soul defines who the agent is, skills define what it can do, and memory stores what it learns. The agent can update its own memory but never modify code — that requires a connected OpenClaw.")
                 }
 
+                // Shortcut templates
+                Section {
+                    NavigationLink {
+                        ShortcutTemplatesView()
+                            .environmentObject(appState)
+                    } label: {
+                        HStack {
+                            Label("Shortcut Templates", systemImage: "square.stack.3d.up")
+                            Spacer()
+                            Text("\(AgentScheduler.savedTasks().filter { $0.id.hasPrefix("shortcut-") }.count) installed")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                } footer: {
+                    Text("Pre-built templates for email, messages, health, smart home, and more. Preview each before installing.")
+                }
+
                 // Scheduled tasks
                 Section {
                     ForEach(Array(tasks.enumerated()), id: \.element.id) { index, task in

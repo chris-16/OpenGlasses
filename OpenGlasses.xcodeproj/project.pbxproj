@@ -102,6 +102,7 @@
 		9FC6BD9F7F9FD1EF36DAFA00 /* StatusIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BAB04141EE25C5FE20E591C /* StatusIndicator.swift */; };
 		A27A3D6DEB6A6FC6B4A59D91 /* ServicesSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4250EE334890782804BC10D /* ServicesSettingsView.swift */; };
 		A2A8ACEE0792BC32306841CF /* SocialContextTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11834A73B7373DD348B862AC /* SocialContextTool.swift */; };
+		A2B5FF25E7B5202CE1465ED8 /* ShortcutTemplatesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCBC6CD53FF0FF0F419174A0 /* ShortcutTemplatesView.swift */; };
 		A2E3004974D993F3E4A1A344 /* ConversationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A7F4F6CD8905473FF5FC1F8 /* ConversationStore.swift */; };
 		A50A84F365FF13BD4C91AFE7 /* OpenAIRealtimeAudioManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C69FF468ACB9A7984F745A8B /* OpenAIRealtimeAudioManager.swift */; };
 		A6DA8BB00EDAD0CDFDC955C3 /* ObjectMemoryTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67AF67A864EBB51281BE64BD /* ObjectMemoryTool.swift */; };
@@ -334,6 +335,7 @@
 		D56AC77FDD0C1EBA73F47979 /* DirectionsTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectionsTool.swift; sourceTree = "<group>"; };
 		D82277471510270A53A0045C /* PhoneCallTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneCallTool.swift; sourceTree = "<group>"; };
 		DC9A4478835847B85DB3994F /* TranslationTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslationTool.swift; sourceTree = "<group>"; };
+		DCBC6CD53FF0FF0F419174A0 /* ShortcutTemplatesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutTemplatesView.swift; sourceTree = "<group>"; };
 		DD46FAD57F6EB5F10DAF421A /* NativeToolRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeToolRegistry.swift; sourceTree = "<group>"; };
 		DF19B90208FE3E6078289AF4 /* CalendarTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarTool.swift; sourceTree = "<group>"; };
 		DFA350836CFEFDABBC5A1B59 /* PomodoroTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PomodoroTool.swift; sourceTree = "<group>"; };
@@ -456,6 +458,7 @@
 				F4250EE334890782804BC10D /* ServicesSettingsView.swift */,
 				39E63B290EDC9DE71ABE9DA2 /* SettingsView.swift */,
 				965542FBCBFA014EEC77EABC /* ShareSheet.swift */,
+				DCBC6CD53FF0FF0F419174A0 /* ShortcutTemplatesView.swift */,
 				8BAB04141EE25C5FE20E591C /* StatusIndicator.swift */,
 				29082A436A56096C7F4500C5 /* ToolsSettingsView.swift */,
 				6E1A21659693E4ECCA07AC67 /* TranscriptOverlay.swift */,
@@ -933,6 +936,7 @@
 				DD9CB205BB424A72BF6CFD48 /* ShareSheet.swift in Sources */,
 				B02FDC7E1541E94D4B96437A /* ShazamTool.swift in Sources */,
 				0A6B80EA3C3404A825B9C64D /* ShortcutCallbackManager.swift in Sources */,
+				A2B5FF25E7B5202CE1465ED8 /* ShortcutTemplatesView.swift in Sources */,
 				9BB648926EAE6BE800180875 /* SiriShortcutsTool.swift in Sources */,
 				A2A8ACEE0792BC32306841CF /* SocialContextTool.swift in Sources */,
 				9FC6BD9F7F9FD1EF36DAFA00 /* StatusIndicator.swift in Sources */,
@@ -1044,7 +1048,7 @@
 				CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION = YES;
 				CODE_SIGN_ENTITLEMENTS = OpenGlasses/OpenGlasses.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = OpenGlasses/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = OpenGlasses;
@@ -1068,7 +1072,7 @@
 				CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION = YES;
 				CODE_SIGN_ENTITLEMENTS = OpenGlasses/OpenGlasses.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = OpenGlasses/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = OpenGlasses;
