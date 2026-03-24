@@ -16,6 +16,8 @@ class AgentNotificationQueue: ObservableObject {
         let id: String
         let message: String
         let source: String       // Which task/trigger produced this
+        let personaId: String?   // Which persona/agent produced this (nil = default)
+        let personaName: String? // Display name for "Claude here — ..."
         let createdAt: Date
         let priority: Priority
         var delivered: Bool = false
@@ -51,13 +53,16 @@ class AgentNotificationQueue: ObservableObject {
     // MARK: - Queue Management
 
     /// Add a notification to the queue. If glasses are connected, deliver immediately.
-    func enqueue(message: String, source: String, priority: QueuedNotification.Priority = .medium) {
+    func enqueue(message: String, source: String, priority: QueuedNotification.Priority = .medium, personaId: String? = nil, personaName: String? = nil) {
         guard let appState else { return }
+
+        // Check chattiness — quiet mode suppresses non-high notifications
+        if Config.agentChattiness == .quiet && priority != .high { return }
 
         if appState.isConnected && !appState.isProcessing && !appState.isListening {
             // Glasses connected and idle — deliver immediately
             Task {
-                await deliverImmediately(message: message, waitForResponse: priority != .low)
+                await deliverImmediately(message: message, waitForResponse: priority != .low, personaId: personaId, personaName: personaName)
             }
         } else {
             // Queue for later
@@ -65,6 +70,8 @@ class AgentNotificationQueue: ObservableObject {
                 id: UUID().uuidString,
                 message: message,
                 source: source,
+                personaId: personaId,
+                personaName: personaName,
                 createdAt: Date(),
                 priority: priority
             )
@@ -123,21 +130,40 @@ class AgentNotificationQueue: ObservableObject {
     // MARK: - Delivery
 
     /// Speak a message and optionally wait for the user's response.
-    private func deliverImmediately(message: String, waitForResponse: Bool) async {
+    /// If from a specific persona, announce which agent and activate that persona's wake word.
+    private func deliverImmediately(message: String, waitForResponse: Bool, personaId: String? = nil, personaName: String? = nil) async {
         guard let appState else { return }
 
-        await appState.speechService.speak(message)
+        // Play soft notification chime
+        appState.speechService.playAcknowledgmentTone()
+        try? await Task.sleep(nanoseconds: 500_000_000)
+
+        // If from a specific persona, activate it and prefix the message
+        if let personaId, let persona = Config.enabledPersonas.first(where: { $0.id == personaId }) {
+            appState.activePersona = persona
+            Config.setActiveModelId(persona.modelId)
+            Config.setActivePresetId(persona.presetId)
+            appState.llmService.refreshActiveModel()
+        }
+
+        let spokenMessage: String
+        if let name = personaName {
+            spokenMessage = "\(name) here. \(message)"
+        } else {
+            spokenMessage = message
+        }
+
+        await appState.speechService.speak(spokenMessage)
         appState.lastResponse = message
 
         if waitForResponse {
-            // Turn on mic to listen for response, then turn off when done
-            NSLog("[AgentQueue] Waiting for operator response...")
+            // Turn on mic — the active persona's wake word is now listening
+            NSLog("[AgentQueue] Waiting for operator response (persona: %@)...",
+                  personaName ?? "default")
             appState.inConversation = true
             appState.isListening = true
             appState.transcriptionService.startRecording()
             appState.updateLiveActivity()
-            // The transcription callback will handle the response naturally
-            // and returnToWakeWord (or stay silent in silent mode)
         }
     }
 

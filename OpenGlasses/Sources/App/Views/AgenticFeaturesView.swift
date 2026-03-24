@@ -16,15 +16,53 @@ struct AgenticFeaturesView: View {
             Section {
                 Toggle("Agentic Features", isOn: $enabled)
                     .onChange(of: enabled) { _, on in
-                        Config.setAgentPersonalityEnabled(on)
+                        Config.setAgentModeEnabled(on)
+                        if on {
+                            appState.agentScheduler.start()
+                        } else {
+                            appState.agentScheduler.stop()
+                        }
                     }
             } header: {
-                Text("Personality Mode")
+                Text("Agentic Mode")
             } footer: {
-                Text("When enabled, the agent uses its own soul, skills, and memory documents instead of prompt presets. It learns about you over time and develops its own personality. Disable to return to standard prompt mode.")
+                Text("Autonomous agent: background tasks, notification queue, scheduled actions, and persistent memory. Each persona can be an independent agent with its own capabilities.")
             }
 
             if enabled {
+                // Chattiness
+                Section {
+                    Picker("Chattiness", selection: Binding(
+                        get: { Config.agentChattiness },
+                        set: { Config.setAgentChattiness($0) }
+                    )) {
+                        ForEach(Config.AgentChattiness.allCases) { level in
+                            Label(level.displayName, systemImage: level.icon).tag(level)
+                        }
+                    }
+                } header: {
+                    Text("Behavior")
+                } footer: {
+                    Text(Config.agentChattiness.description)
+                }
+
+                // Check intervals
+                Section {
+                    Stepper("Connected: every \(Config.agentConnectedInterval) min",
+                            value: Binding(
+                                get: { Config.agentConnectedInterval },
+                                set: { Config.setAgentConnectedInterval($0) }
+                            ), in: 1...60)
+                    Stepper("Disconnected: every \(Config.agentDisconnectedInterval) min",
+                            value: Binding(
+                                get: { Config.agentDisconnectedInterval },
+                                set: { Config.setAgentDisconnectedInterval($0) }
+                            ), in: 5...120)
+                } header: {
+                    Text("Check Frequency")
+                } footer: {
+                    Text("How often the agent checks for due tasks. Faster when glasses are on, slower when off to save battery.")
+                }
                 Section {
                     ForEach(AgentDocumentStore.DocumentType.allCases) { type in
                         Button {

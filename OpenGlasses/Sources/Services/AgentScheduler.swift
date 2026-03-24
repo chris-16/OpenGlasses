@@ -60,13 +60,7 @@ class AgentScheduler: ObservableObject {
 
         NSLog("[AgentScheduler] Starting")
         morningBriefingDone = false
-
-        // Check every 60 seconds for due tasks
-        timer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
-            Task { @MainActor in
-                await self?.checkScheduledTasks()
-            }
-        }
+        scheduleNextCheck()
 
         // Run onboarding check immediately if needed
         if !Config.agentOnboardingComplete {
@@ -81,6 +75,26 @@ class AgentScheduler: ObservableObject {
         Task {
             try? await Task.sleep(nanoseconds: 5_000_000_000)
             await checkMorningBriefing()
+        }
+    }
+
+    /// Schedule the next check based on glasses connection state.
+    private func scheduleNextCheck() {
+        timer?.invalidate()
+        let connected = appState?.isConnected ?? false
+        let interval = connected
+            ? TimeInterval(Config.agentConnectedInterval * 60)
+            : TimeInterval(Config.agentDisconnectedInterval * 60)
+
+        NSLog("[AgentScheduler] Next check in %.0f min (%@)",
+              interval / 60, connected ? "connected" : "disconnected")
+
+        timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: false) { [weak self] _ in
+            Task { @MainActor in
+                await self?.checkScheduledTasks()
+                // Re-schedule with potentially updated interval
+                self?.scheduleNextCheck()
+            }
         }
     }
 

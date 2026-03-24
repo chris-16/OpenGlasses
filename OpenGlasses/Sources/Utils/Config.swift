@@ -173,6 +173,21 @@ struct Persona: Codable, Identifiable, Equatable {
     var presetId: String                  // References PromptPreset.id
     var enabled: Bool
 
+    // MARK: - Agentic Capabilities (optional)
+
+    /// Custom soul.md content for this persona. When set, overrides the global soul.
+    var soulOverride: String?
+
+    /// Chattiness level for this persona (nil = use global setting).
+    /// Raw string matching Config.AgentChattiness: "quiet", "normal", "chatty".
+    var chattinessRaw: String?
+
+    /// Specific tools this persona can use (nil = all tools). Restrict to subset for focused agents.
+    var allowedTools: [String]?
+
+    /// Scheduled task IDs this persona owns. Tasks only run when this persona is active.
+    var ownedTaskIds: [String]?
+
     /// All phrases this persona responds to (primary + alternatives).
     var allPhrases: [String] {
         [wakePhrase] + alternativeWakePhrases
@@ -1207,8 +1222,69 @@ struct Config {
         UserDefaults.standard.bool(forKey: "agentModeEnabled")
     }
 
-    static func setAgentPersonalityEnabled(_ enabled: Bool) {
+    static func setAgentModeEnabled(_ enabled: Bool) {
         UserDefaults.standard.set(enabled, forKey: "agentModeEnabled")
+    }
+
+    // MARK: - Agent Check Intervals
+
+    /// How often the agent checks for tasks when glasses are connected (minutes).
+    static var agentConnectedInterval: Int {
+        let val = UserDefaults.standard.integer(forKey: "agentConnectedInterval")
+        return val > 0 ? val : 5
+    }
+    static func setAgentConnectedInterval(_ minutes: Int) {
+        UserDefaults.standard.set(max(1, minutes), forKey: "agentConnectedInterval")
+    }
+
+    /// How often the agent checks for tasks when glasses are disconnected (minutes).
+    static var agentDisconnectedInterval: Int {
+        let val = UserDefaults.standard.integer(forKey: "agentDisconnectedInterval")
+        return val > 0 ? val : 30
+    }
+    static func setAgentDisconnectedInterval(_ minutes: Int) {
+        UserDefaults.standard.set(max(5, minutes), forKey: "agentDisconnectedInterval")
+    }
+
+    // MARK: - Agent Chattiness
+
+    /// How proactive the agent is: quiet (only when asked), normal (scheduled + relevant),
+    /// chatty (proactive observations + suggestions).
+    enum AgentChattiness: String, CaseIterable, Identifiable {
+        case quiet, normal, chatty
+
+        var id: String { rawValue }
+
+        var displayName: String {
+            switch self {
+            case .quiet: return "Quiet"
+            case .normal: return "Normal"
+            case .chatty: return "Chatty"
+            }
+        }
+
+        var description: String {
+            switch self {
+            case .quiet: return "Only responds when asked. Scheduled tasks run silently."
+            case .normal: return "Speaks scheduled results and important notifications."
+            case .chatty: return "Proactive observations, suggestions, and commentary."
+            }
+        }
+
+        var icon: String {
+            switch self {
+            case .quiet: return "speaker.slash"
+            case .normal: return "speaker.wave.2"
+            case .chatty: return "speaker.wave.3"
+            }
+        }
+    }
+
+    static var agentChattiness: AgentChattiness {
+        AgentChattiness(rawValue: UserDefaults.standard.string(forKey: "agentChattiness") ?? "") ?? .normal
+    }
+    static func setAgentChattiness(_ level: AgentChattiness) {
+        UserDefaults.standard.set(level.rawValue, forKey: "agentChattiness")
     }
 
     /// Whether the agent has completed its initial onboarding questions.
