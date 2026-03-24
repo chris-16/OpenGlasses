@@ -96,5 +96,32 @@ struct OpenGlassesShortcuts: AppShortcutsProvider {
             shortTitle: "Gemini Live",
             systemImageName: "waveform"
         )
+        AppShortcut(
+            intent: ReadTextIntent(),
+            phrases: [
+                "Read this with \(.applicationName)",
+                "\(.applicationName) read this"
+            ],
+            shortTitle: "Read Text",
+            systemImageName: "text.viewfinder"
+        )
+        AppShortcut(
+            intent: AnalyzeFoodIntent(),
+            phrases: [
+                "Is this healthy \(.applicationName)",
+                "\(.applicationName) analyze food"
+            ],
+            shortTitle: "Analyze Food",
+            systemImageName: "fork.knife"
+        )
+        AppShortcut(
+            intent: DescribeEnvironmentIntent(),
+            phrases: [
+                "Describe surroundings \(.applicationName)",
+                "\(.applicationName) what's around me"
+            ],
+            shortTitle: "Describe Environment",
+            systemImageName: "eye"
+        )
     }
 }

@@ -61,6 +61,7 @@
 		6787CCB157C7A06753420D70 /* BottomControlBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 101041B6620C9538B4606796 /* BottomControlBar.swift */; };
 		6826826D842D74BDE1F0F612 /* MWDATCore in Frameworks */ = {isa = PBXBuildFile; productRef = 9AB2B081EA62FA6DE3DCF3BA /* MWDATCore */; };
 		69679B51F7F6EA5625A5B1DB /* CurrencyTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B5862735E7590C1743F7B97 /* CurrencyTool.swift */; };
+		6B94C6A8653140884D96139B /* QuickVisionIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCBEA5D5175658969F452303 /* QuickVisionIntent.swift */; };
 		718E471F57F00BC7CA6CEC98 /* OpenGlassesWatch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 2DF4A8B9C2961DE7DCEA4287 /* OpenGlassesWatch.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		71C8F1FE6A1657F6824B22FF /* GlassesActivityWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 027414D3FDBBF808E2E0F3DB /* GlassesActivityWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		729B87DAF3B1570AD87EE392 /* NativeToolRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD46FAD57F6EB5F10DAF421A /* NativeToolRegistry.swift */; };
@@ -84,6 +85,7 @@
 		9807600685AD4110F005D0CE /* ModelEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C59DC9379EBF3C847016C0C3 /* ModelEditorView.swift */; };
 		9B04BB8E19FE9158C102BA1E /* CalendarTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF19B90208FE3E6078289AF4 /* CalendarTool.swift */; };
 		9BB648926EAE6BE800180875 /* SiriShortcutsTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 649412C760604BA905391C7E /* SiriShortcutsTool.swift */; };
+		9C727CA56B29257762E53046 /* FoodAnalysisTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 094048ED5649B9EECF38A011 /* FoodAnalysisTool.swift */; };
 		9CA0B5EBC805C50E38982F83 /* NativeTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48E11C4D1110C9E033ABE5A4 /* NativeTool.swift */; };
 		9CF6C046A1B6184E96181E1D /* RemindersTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE2D80DD948E2950C2FFF980 /* RemindersTool.swift */; };
 		9DA053E2D9E8701AA5DA2B41 /* NativeToolRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F114AF9F2F3510ED455CA65 /* NativeToolRouter.swift */; };
@@ -192,6 +194,7 @@
 /* Begin PBXFileReference section */
 		027414D3FDBBF808E2E0F3DB /* GlassesActivityWidget.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = GlassesActivityWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		0679379BFB36E617B22C6104 /* GeocodingHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeocodingHelper.swift; sourceTree = "<group>"; };
+		094048ED5649B9EECF38A011 /* FoodAnalysisTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodAnalysisTool.swift; sourceTree = "<group>"; };
 		09943AB947BF7415AC20AD4C /* MCPServersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MCPServersView.swift; sourceTree = "<group>"; };
 		09B477C822E8DD47398F74B1 /* CameraService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraService.swift; sourceTree = "<group>"; };
 		0AE2A555201772AF1A324F94 /* OpenAppTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAppTool.swift; sourceTree = "<group>"; };
@@ -293,6 +296,7 @@
 		C5B0FBEDCBFF86613153B4F1 /* PromptPresetsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromptPresetsView.swift; sourceTree = "<group>"; };
 		C69FF468ACB9A7984F745A8B /* OpenAIRealtimeAudioManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAIRealtimeAudioManager.swift; sourceTree = "<group>"; };
 		CB9DD3A7DB12291F1FD6E0E7 /* SaveLocationTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveLocationTool.swift; sourceTree = "<group>"; };
+		CCBEA5D5175658969F452303 /* QuickVisionIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickVisionIntent.swift; sourceTree = "<group>"; };
 		CDA256C21B8796266EEA3394 /* MCPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MCPClient.swift; sourceTree = "<group>"; };
 		CE2EBB750167CA7BB5119D2B /* LivePreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LivePreviewView.swift; sourceTree = "<group>"; };
 		D185A772662BC13587123DF7 /* CustomToolWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomToolWrapper.swift; sourceTree = "<group>"; };
@@ -463,6 +467,7 @@
 				924255FDB4AB583D2ACDB6E3 /* FaceRecognitionTool.swift */,
 				377F92EB5BBCF9661C7C6F1C /* FitnessCoachingTool.swift */,
 				36A7F34BB9CDB6C943DB5354 /* FlashlightTool.swift */,
+				094048ED5649B9EECF38A011 /* FoodAnalysisTool.swift */,
 				C463093E183B3FEEAF98E350 /* GeofenceTool.swift */,
 				813ACC78A4BFB9AA9EF94585 /* HomeAssistantTool.swift */,
 				61A6CD7F3BA005693044545A /* HomeKitTool.swift */,
@@ -584,6 +589,7 @@
 			isa = PBXGroup;
 			children = (
 				85DD6B9232643FB0A94B31DB /* AskOpenGlassesIntent.swift */,
+				CCBEA5D5175658969F452303 /* QuickVisionIntent.swift */,
 				84A1DF4D36A2C5CA6CE16D7A /* ToggleGeminiLiveIntent.swift */,
 			);
 			path = Intents;
@@ -749,6 +755,7 @@
 				BB771B3C6F65DCE90E624A1B /* FaceRecognitionTool.swift in Sources */,
 				D6628A75E930933614DBD9F4 /* FitnessCoachingTool.swift in Sources */,
 				03A37BD1BE400ECF09D8D504 /* FlashlightTool.swift in Sources */,
+				9C727CA56B29257762E53046 /* FoodAnalysisTool.swift in Sources */,
 				D476884067774F4102608A82 /* FrameThrottler.swift in Sources */,
 				C199BD1439E5E05376764C40 /* GeminiLiveAudioManager.swift in Sources */,
 				0F0ED56F849E29DD52B82682 /* GeminiLiveService.swift in Sources */,
@@ -806,6 +813,7 @@
 				10B64E733570FE21A2622316 /* PromptInspectorView.swift in Sources */,
 				9649CC4B7DBACDADB3C6D4A1 /* PromptPresetsView.swift in Sources */,
 				75CB3F368BACFF287C71249B /* QuickActionsOverlay.swift in Sources */,
+				6B94C6A8653140884D96139B /* QuickVisionIntent.swift in Sources */,
 				55B1EEDF2C214A5879E3CA87 /* RadialLayout.swift in Sources */,
 				9CF6C046A1B6184E96181E1D /* RemindersTool.swift in Sources */,
 				8E52D9A49E71CFE5678E0619 /* RootView.swift in Sources */,

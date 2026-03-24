@@ -1,5 +1,7 @@
 # OpenGlasses
 
+[中文文档 (Chinese)](README.zh-CN.md)
+
 An open-source voice-powered AI assistant for Ray-Ban Meta smart glasses. 50+ built-in tools, multi-LLM support (cloud + on-device), personas with simultaneous wake words, live translation, MCP tool servers, and more — all controlled hands-free by voice.
 
 > **Note**: The Meta Wearables SDK is currently in **developer preview**. App Store distribution is not yet supported — each user must build the app from source with their own Meta developer credentials.
@@ -337,7 +339,7 @@ Key areas for contribution:
 
 ## License
 
-MIT License — see LICENSE file.
+Business Source License 1.1 — free for non-commercial use. Commercial use requires a separate license from Skunk0 / Skunkworks NZ. Converts to Apache 2.0 on March 24, 2030. See LICENSE file for details.
 
 ## Credits
 

@@ -6,6 +6,22 @@ options:
     watchOS: "10.0"
   xcodeVersion: "16.0"
   generateEmptyDirectories: true
+  developmentLanguage: en
+  knownRegions:
+    - en
+    - zh-Hans
+    - zh-Hant
+    - ja
+    - ko
+    - cs
+    - pl
+    - pt-BR
+    - es
+    - fr
+    - de
+    - it
+    - nl
+    - th
 
 packages:
   meta-wearables-dat-ios:

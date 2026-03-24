@@ -1,5 +1,22 @@
 import Foundation
 
+/// A LiveAI mode preset that changes the system instruction for realtime sessions.
+struct LiveAIMode: Codable, Identifiable, Hashable {
+    var id: String
+    var name: String
+    var icon: String
+    var promptPrefix: String
+
+    static let builtIn: [LiveAIMode] = [
+        LiveAIMode(id: "standard", name: "Standard", icon: "bubble.left", promptPrefix: ""),
+        LiveAIMode(id: "museum", name: "Museum Guide", icon: "building.columns", promptPrefix: "You are acting as a museum docent and art expert. When the user shows you artwork, sculptures, or exhibits, identify them and provide engaging context: the artist, period, technique, and cultural significance. Be enthusiastic and educational.\n\n"),
+        LiveAIMode(id: "accessibility", name: "Blind Assistant", icon: "figure.walk", promptPrefix: "You are a visual accessibility assistant for a visually impaired user. Describe the environment in detail: obstacles, people, signage, doors, stairs, vehicles, and spatial layout. Be specific about distances and directions (left, right, ahead). Prioritize safety-critical information.\n\n"),
+        LiveAIMode(id: "reading", name: "Reading Assistant", icon: "text.viewfinder", promptPrefix: "You are a reading assistant. Focus on any visible text — signs, menus, documents, labels, screens. Read text aloud clearly and completely. For foreign languages, first read the original, then translate. Offer to summarize long text.\n\n"),
+        LiveAIMode(id: "translator", name: "Live Translator", icon: "globe", promptPrefix: "You are a real-time translator. When you see text or hear speech in a foreign language, translate it naturally. Provide the original text first, then the translation. For signs and menus, translate everything visible.\n\n"),
+        LiveAIMode(id: "tutor", name: "Language Tutor", icon: "graduationcap", promptPrefix: "You are a language tutor. Help the user practice the language of the text/signs they show you. Pronounce words clearly, explain grammar, suggest phrases for the situation. Be encouraging and patient.\n\n"),
+    ]
+}
+
 /// A quick action button shown on the main screen.
 struct QuickAction: Codable, Identifiable {
     var id: String
@@ -701,6 +718,32 @@ struct Config {
 
     static func setAppMode(_ mode: AppMode) {
         UserDefaults.standard.set(mode.rawValue, forKey: "appMode")
+    }
+
+    // MARK: - LiveAI Mode
+
+    static var activeLiveAIModeId: String {
+        UserDefaults.standard.string(forKey: "activeLiveAIModeId") ?? "standard"
+    }
+
+    static func setActiveLiveAIModeId(_ id: String) {
+        UserDefaults.standard.set(id, forKey: "activeLiveAIModeId")
+    }
+
+    static var activeLiveAIMode: LiveAIMode {
+        LiveAIMode.builtIn.first(where: { $0.id == activeLiveAIModeId }) ?? LiveAIMode.builtIn[0]
+    }
+
+    // MARK: - Translation Mic Source
+
+    /// When true, live translation uses the iPhone's built-in mic instead of glasses Bluetooth mic.
+    /// Useful for translating what someone nearby is saying (their voice comes through the phone mic).
+    static var usePhoneMicForTranslation: Bool {
+        UserDefaults.standard.bool(forKey: "usePhoneMicForTranslation")
+    }
+
+    static func setUsePhoneMicForTranslation(_ enabled: Bool) {
+        UserDefaults.standard.set(enabled, forKey: "usePhoneMicForTranslation")
     }
 
     // MARK: - OpenClaw Configuration

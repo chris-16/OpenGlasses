@@ -82,10 +82,11 @@ final class NativeToolRegistry {
         // Always register — tool checks config at execution time
         register(HomeAssistantTool())
 
-        // Tier 5: Barcode scanning, live translation
+        // Tier 5: Barcode scanning, live translation, food analysis
         if let camera = cameraService {
             register(BarcodeScannerTool(cameraService: camera))
         }
+        register(FoodAnalysisTool())
         // LiveTranslationTool is registered separately after the service is created
 
         // User-defined custom tools

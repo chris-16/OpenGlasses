@@ -71,6 +71,20 @@ final class LiveTranslationService: ObservableObject {
     // MARK: - Speech Recognition
 
     private func startListening() {
+        // Configure audio session based on mic source preference
+        let audioSession = AVAudioSession.sharedInstance()
+        do {
+            let usePhoneMic = Config.usePhoneMicForTranslation
+            let options: AVAudioSession.CategoryOptions = usePhoneMic
+                ? [.mixWithOthers, .defaultToSpeaker]
+                : [.mixWithOthers, .allowBluetooth, .allowBluetoothA2DP, .defaultToSpeaker]
+            try audioSession.setCategory(.playAndRecord, mode: .measurement, options: options)
+            try audioSession.setActive(true)
+            print("🌍 Translation mic source: \(usePhoneMic ? "iPhone" : "glasses (Bluetooth)")")
+        } catch {
+            print("⚠️ LiveTranslation: audio session error: \(error)")
+        }
+
         let engine = AVAudioEngine()
         let request = SFSpeechAudioBufferRecognitionRequest()
         request.shouldReportPartialResults = true

@@ -371,7 +371,16 @@ class GeminiLiveSessionManager: ObservableObject {
     /// Build the full system instruction for Gemini Live, including vision capabilities,
     /// tool usage instructions, and the user's current location.
     private func buildSystemInstruction() -> String {
-        var prompt = Config.systemPrompt
+        // Apply LiveAI mode prefix (e.g., museum guide, accessibility, translator)
+        let modePrefix = Config.activeLiveAIMode.promptPrefix
+        var prompt = modePrefix + Config.systemPrompt
+
+        // Instruct in user's preferred language
+        let languageCode = Locale.current.language.languageCode?.identifier ?? "en"
+        if languageCode != "en" {
+            let languageName = Locale.current.localizedString(forLanguageCode: languageCode) ?? languageCode
+            prompt = "IMPORTANT: Always respond in \(languageName) (\(languageCode)).\n\n" + prompt
+        }
 
         // Vision prompt depends on whether camera frames are actually flowing.
         // When streaming: full vision instructions.

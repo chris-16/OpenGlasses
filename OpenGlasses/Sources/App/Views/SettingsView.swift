@@ -164,10 +164,14 @@ struct SettingsView: View {
                 Section {
                     Toggle("Listen via Glasses Mic", isOn: $useGlassesMicForWakeWord)
                     Toggle("Blur Bystander Faces", isOn: $privacyFilterEnabled)
+                    Toggle("Use Phone Mic for Translation", isOn: Binding(
+                        get: { Config.usePhoneMicForTranslation },
+                        set: { Config.setUsePhoneMicForTranslation($0) }
+                    ))
                 } header: {
                     Text("Hardware & Privacy")
                 } footer: {
-                    Text("Glasses mic enables true hands-free (phone in pocket) but drains glasses battery faster. Phone mic saves glasses battery but requires the phone nearby. Requires restart to take effect.")
+                    Text("Glasses mic enables true hands-free (phone in pocket) but drains glasses battery faster. Phone mic for translation picks up nearby speakers through the iPhone mic instead of the glasses — useful for translating what someone next to you is saying.")
                 }
 
                 // MARK: Transparency
