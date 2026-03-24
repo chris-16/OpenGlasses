@@ -17,6 +17,7 @@
 		061F2082F2ED7B2594188FDC /* DeviceInfoTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 220AC9B94458D011A6DC7E37 /* DeviceInfoTool.swift */; };
 		066E4CA3FFB116B1DAF8DB58 /* OpenAIRealtimeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24FDEE6CFAE6AD8A3F2AC702 /* OpenAIRealtimeService.swift */; };
 		067BF84ACE5DE5A03C059189 /* intro.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = 45E3B3049C0DE740FA37ABE1 /* intro.mp4 */; };
+		0A6B80EA3C3404A825B9C64D /* ShortcutCallbackManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD85B93668F3556CA85DA8D3 /* ShortcutCallbackManager.swift */; };
 		0C838423C97FA7697C3656B6 /* MeetingSummaryTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 187F7D4D257473BA5144A577 /* MeetingSummaryTool.swift */; };
 		0F0ED56F849E29DD52B82682 /* GeminiLiveService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4DD6028522D2C2B1D52DD7C /* GeminiLiveService.swift */; };
 		10B64E733570FE21A2622316 /* PromptInspectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 858140B42DD1633F563E5BFB /* PromptInspectorView.swift */; };
@@ -150,6 +151,7 @@
 		E52661FB396827FDAEB8E060 /* OpenGlassesWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A677445964B1185F08CCA323 /* OpenGlassesWatchApp.swift */; };
 		E547F4974B491D0B9156FD8F /* LocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9886D8FB33DA06C125BEBEBA /* LocationService.swift */; };
 		E72D6BC4BA303319E6B2C666 /* PersonasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4C9AFBE00DA07918A099524 /* PersonasView.swift */; };
+		E89CB6BB8456474494C5DD37 /* AgentScheduleTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05E7694407E6C49108269783 /* AgentScheduleTool.swift */; };
 		EB289A3C17A25E6DED22FA2B /* TextToSpeechService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E0EFD4CE4C3499FDF5444E0 /* TextToSpeechService.swift */; };
 		EC0E3F2571BC3922E04CF484 /* LLMService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3951EA5CAF381F4F3192D54 /* LLMService.swift */; };
 		ECEB277B33994D450E4B505A /* ToolCallRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 633DF6FE961BCCB26868D5AB /* ToolCallRouter.swift */; };
@@ -204,6 +206,7 @@
 
 /* Begin PBXFileReference section */
 		027414D3FDBBF808E2E0F3DB /* GlassesActivityWidget.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = GlassesActivityWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		05E7694407E6C49108269783 /* AgentScheduleTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentScheduleTool.swift; sourceTree = "<group>"; };
 		0679379BFB36E617B22C6104 /* GeocodingHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeocodingHelper.swift; sourceTree = "<group>"; };
 		094048ED5649B9EECF38A011 /* FoodAnalysisTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodAnalysisTool.swift; sourceTree = "<group>"; };
 		09943AB947BF7415AC20AD4C /* MCPServersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MCPServersView.swift; sourceTree = "<group>"; };
@@ -312,6 +315,7 @@
 		B7E25E4491B13CEDF14D4364 /* FrameThrottler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameThrottler.swift; sourceTree = "<group>"; };
 		B99A4BBFB7F9645BC326C15B /* LocalLLMService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalLLMService.swift; sourceTree = "<group>"; };
 		BB233064C68D8491161FBCB7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		BD85B93668F3556CA85DA8D3 /* ShortcutCallbackManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutCallbackManager.swift; sourceTree = "<group>"; };
 		BF09406CF770FA333D952DD6 /* ConversationSummaryTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationSummaryTool.swift; sourceTree = "<group>"; };
 		C463093E183B3FEEAF98E350 /* GeofenceTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeofenceTool.swift; sourceTree = "<group>"; };
 		C59DC9379EBF3C847016C0C3 /* ModelEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelEditorView.swift; sourceTree = "<group>"; };
@@ -480,6 +484,7 @@
 		99223900E03498B03E3E935F /* NativeTools */ = {
 			isa = PBXGroup;
 			children = (
+				05E7694407E6C49108269783 /* AgentScheduleTool.swift */,
 				A52BFC30C1CD9580378CA279 /* AlarmTool.swift */,
 				4691CC4CEA5C75C810866ECA /* AppleRemindersTool.swift */,
 				AA9668AF5CCD65FEFE951278 /* AsianMessagingTool.swift */,
@@ -579,6 +584,7 @@
 				92A74F270CBABDF72C72C5BD /* OpenClawBridge.swift */,
 				642F3C950294CA183F11F7E7 /* PrivacyFilterService.swift */,
 				8E5C91138E73863A23CB8E49 /* ProactiveAlertService.swift */,
+				BD85B93668F3556CA85DA8D3 /* ShortcutCallbackManager.swift */,
 				6E0EFD4CE4C3499FDF5444E0 /* TextToSpeechService.swift */,
 				633DF6FE961BCCB26868D5AB /* ToolCallRouter.swift */,
 				1F9E1F6B5AC442EC808D2B26 /* TranscriptionService.swift */,
@@ -813,6 +819,7 @@
 				B26CD1DD9250EC1665B8BF7B /* AgentDataExporter.swift in Sources */,
 				5A372CED64E94C1BD52F3D81 /* AgentDocumentStore.swift in Sources */,
 				EDDD862FCD553CDF869642D8 /* AgentNotificationQueue.swift in Sources */,
+				E89CB6BB8456474494C5DD37 /* AgentScheduleTool.swift in Sources */,
 				CCFC45F1C3DFB7454211DFDD /* AgentScheduler.swift in Sources */,
 				540EE43620F48A03B26DFF43 /* AgenticFeaturesView.swift in Sources */,
 				4B218F08B37EFD2AB9B1A7E8 /* AlarmTool.swift in Sources */,
@@ -921,6 +928,7 @@
 				D0B1AC8DE6F14ECDA4E95204 /* SettingsView.swift in Sources */,
 				DD9CB205BB424A72BF6CFD48 /* ShareSheet.swift in Sources */,
 				B02FDC7E1541E94D4B96437A /* ShazamTool.swift in Sources */,
+				0A6B80EA3C3404A825B9C64D /* ShortcutCallbackManager.swift in Sources */,
 				9BB648926EAE6BE800180875 /* SiriShortcutsTool.swift in Sources */,
 				A2A8ACEE0792BC32306841CF /* SocialContextTool.swift in Sources */,
 				9FC6BD9F7F9FD1EF36DAFA00 /* StatusIndicator.swift in Sources */,

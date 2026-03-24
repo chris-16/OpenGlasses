@@ -41,7 +41,12 @@ struct CustomToolWrapper: NativeTool {
             return "No shortcut name configured for tool '\(name)'."
         }
 
-        var urlString = "shortcuts://run-shortcut?name=\(shortcutName)"
+        guard let encodedName = shortcutName.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
+            return "Invalid shortcut name."
+        }
+
+        // Use x-callback-url to get the shortcut's result back
+        var urlString = "shortcuts://x-callback-url/run-shortcut?name=\(encodedName)"
 
         // Pass the first string argument as input text
         if let firstValue = args.values.first {
@@ -51,8 +56,12 @@ struct CustomToolWrapper: NativeTool {
             }
         }
 
-        guard let encoded = urlString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-              let url = URL(string: encoded) else {
+        // Callback URLs — the shortcut will redirect back to OpenGlasses with results
+        urlString += "&x-success=openglasses://shortcut-result"
+        urlString += "&x-cancel=openglasses://shortcut-cancel"
+        urlString += "&x-error=openglasses://shortcut-error"
+
+        guard let url = URL(string: urlString) else {
             return "Couldn't build URL for shortcut '\(shortcutName)'."
         }
 
@@ -64,10 +73,16 @@ struct CustomToolWrapper: NativeTool {
             return "Can't open Shortcuts app. Is '\(shortcutName)' installed?"
         }
 
+        // Store a pending callback so the URL handler can resolve it
+        await ShortcutCallbackManager.shared.setPending(toolName: name)
+
         await MainActor.run {
             UIApplication.shared.open(url)
         }
-        return "Running shortcut '\(shortcutName)'."
+
+        // Wait for the callback (up to 30 seconds)
+        let result = await ShortcutCallbackManager.shared.waitForResult(timeout: 30)
+        return result ?? "Shortcut '\(shortcutName)' completed (no output returned)."
     }
 
     private func executeURLScheme(args: [String: Any]) async -> String {

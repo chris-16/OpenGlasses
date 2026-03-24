@@ -121,6 +121,13 @@ struct OpenGlassesApp: App {
                 .environmentObject(appState)
                 .onAppear { AppStateProvider.shared = appState }
                 .onOpenURL { url in
+                    // Handle shortcut x-callback-url results
+                    if url.scheme == "openglasses",
+                       ["shortcut-result", "shortcut-cancel", "shortcut-error"].contains(url.host) {
+                        ShortcutCallbackManager.shared.handleCallback(url: url)
+                        return
+                    }
+
                     // Handle widget quick action deep links
                     if url.scheme == "openglasses", url.host == "action" {
                         let action = url.lastPathComponent

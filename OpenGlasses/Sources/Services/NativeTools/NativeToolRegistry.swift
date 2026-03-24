@@ -87,6 +87,7 @@ final class NativeToolRegistry {
             register(BarcodeScannerTool(cameraService: camera))
         }
         register(FoodAnalysisTool())
+        register(AgentScheduleTool())
         register(ChineseAppsTool())
         register(AsianMessagingTool())
         // LiveTranslationTool is registered separately after the service is created
