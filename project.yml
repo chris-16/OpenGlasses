@@ -1,6 +1,6 @@
-name: OpenGlasses
+name: GlassClaw
 options:
-  bundleIdPrefix: com.openglasses
+  bundleIdPrefix: cl.zro.glassclaw
   deploymentTarget:
     iOS: "17.0"
     watchOS: "10.0"
@@ -51,9 +51,14 @@ packages:
   HaishinKit:
     url: https://github.com/shogo4405/HaishinKit.swift.git
     from: "2.0.0"
-  mlx-swift-lm:
-    url: https://github.com/ml-explore/mlx-swift-lm.git
-    branch: main
+
+schemes:
+  GlassClaw:
+    build:
+      targets:
+        OpenGlasses: all
+    run:
+      config: Debug
 
 targets:
   OpenGlasses:
@@ -65,14 +70,16 @@ targets:
       path: OpenGlasses/OpenGlasses.entitlements
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.openglasses.app
-        MARKETING_VERSION: "1.4.0"
-        CURRENT_PROJECT_VERSION: "8"
+        PRODUCT_BUNDLE_IDENTIFIER: cl.zro.glassclaw
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
         SWIFT_VERSION: "5.9"
+        DEVELOPMENT_TEAM: G2HJ6YM2ZB
+        CODE_SIGN_STYLE: "Automatic"
         CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION: "YES"
         INFOPLIST_FILE: OpenGlasses/Info.plist
         GENERATE_INFOPLIST_FILE: "NO"
-        INFOPLIST_KEY_CFBundleDisplayName: "OpenGlasses"
+        INFOPLIST_KEY_CFBundleDisplayName: "GlassClaw"
         INFOPLIST_KEY_LSApplicationCategoryType: "public.app-category.utilities"
     dependencies:
       - package: meta-wearables-dat-ios
@@ -83,14 +90,7 @@ targets:
         product: HaishinKit
       - package: HaishinKit
         product: RTMPHaishinKit
-      - package: mlx-swift-lm
-        product: MLXLLM
-      - package: mlx-swift-lm
-        product: MLXLMCommon
-      - package: mlx-swift-lm
-        product: MLXVLM
       - target: GlassesActivityWidget
-      - target: OpenGlassesWatch
 
   GlassesActivityWidget:
     type: app-extension
@@ -105,7 +105,9 @@ targets:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.openglasses.app.GlassesActivityWidget
+        PRODUCT_BUNDLE_IDENTIFIER: cl.zro.glassclaw.GlassesActivityWidget
+        DEVELOPMENT_TEAM: G2HJ6YM2ZB
+        CODE_SIGN_STYLE: "Automatic"
         SWIFT_VERSION: "5.9"
         SKIP_INSTALL: "YES"
 
@@ -116,7 +118,9 @@ targets:
       - path: OpenGlassesWatch
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.openglasses.app.watchkitapp
+        PRODUCT_BUNDLE_IDENTIFIER: cl.zro.glassclaw.watchkitapp
+        DEVELOPMENT_TEAM: G2HJ6YM2ZB
+        CODE_SIGN_STYLE: "Automatic"
         SWIFT_VERSION: "5.9"
         INFOPLIST_FILE: OpenGlassesWatch/Info.plist
         GENERATE_INFOPLIST_FILE: "NO"

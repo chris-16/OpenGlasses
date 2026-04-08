@@ -32,7 +32,7 @@ class VideoRecordingService: ObservableObject {
         guard !isRecording else { return }
 
         let tempDir = FileManager.default.temporaryDirectory
-        let fileName = "OpenGlasses_\(Int(Date().timeIntervalSince1970)).mp4"
+        let fileName = "GlassClaw_\(Int(Date().timeIntervalSince1970)).mp4"
         let url = tempDir.appendingPathComponent(fileName)
 
         // Clean up any previous file at this path

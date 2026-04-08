@@ -567,7 +567,7 @@ class LLMService: ObservableObject {
             // OpenRouter requires additional headers for tracking
             if provider == .openrouter {
                 request.setValue("https://github.com/straff2002/OpenGlasses", forHTTPHeaderField: "HTTP-Referer")
-                request.setValue("OpenGlasses", forHTTPHeaderField: "X-Title")
+                request.setValue("GlassClaw", forHTTPHeaderField: "X-Title")
             }
 
             // OpenAI format: system prompt is a message in the array

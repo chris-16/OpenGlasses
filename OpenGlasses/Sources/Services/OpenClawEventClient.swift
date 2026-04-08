@@ -154,7 +154,7 @@ class OpenClawEventClient {
                 "maxProtocol": 1,
                 "client": [
                     "id": "gateway-client",
-                    "displayName": "OpenGlasses",
+                    "displayName": "GlassClaw",
                     "version": Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0",
                     "platform": "ios",
                     "mode": "backend"

@@ -188,7 +188,7 @@ struct OpenGlassesApp: App {
             case .active:
                 print("📱 App became active")
                 appState.restoreFromBackground()
-                appState.liveActivityManager.start(glassesName: appState.glassesService.deviceName ?? "OpenGlasses")
+                appState.liveActivityManager.start(glassesName: appState.glassesService.deviceName ?? "GlassClaw")
                 appState.updateLiveActivity()
                 Task {
                     // Give onOpenURL time to process any pending Meta Auth callbacks

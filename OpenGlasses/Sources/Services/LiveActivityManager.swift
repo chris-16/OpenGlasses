@@ -14,7 +14,7 @@ class LiveActivityManager {
     }
 
     /// Start a new Live Activity. No-op if one is already running or Live Activities are disabled.
-    func start(glassesName: String = "OpenGlasses") {
+    func start(glassesName: String = "GlassClaw") {
         guard ActivityAuthorizationInfo().areActivitiesEnabled else {
             NSLog("[LiveActivity] Activities not enabled")
             return

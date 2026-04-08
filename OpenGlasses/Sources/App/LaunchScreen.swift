@@ -47,7 +47,7 @@ struct LaunchScreen: View {
                     .frame(height: 32)
 
                 // App name
-                Text("OpenGlasses")
+                Text("GlassClaw")
                     .font(.system(size: 36, weight: .bold, design: .rounded))
                     .foregroundColor(.white)
                     .opacity(isAnimating ? 1.0 : 0)

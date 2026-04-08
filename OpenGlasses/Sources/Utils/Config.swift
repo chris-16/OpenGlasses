@@ -1070,7 +1070,7 @@ struct Config {
         // Migration: create a persona from current config
         let migrated = Persona(
             id: UUID().uuidString,
-            name: "OpenGlasses",
+            name: "GlassClaw",
             wakePhrase: wakePhrase,
             alternativeWakePhrases: alternativeWakePhrases,
             modelId: activeModelId,
@@ -1214,7 +1214,11 @@ struct Config {
     // MARK: - OpenClaw Configuration
 
     static var openClawEnabled: Bool {
-        UserDefaults.standard.bool(forKey: "openClawEnabled")
+        // Default to true for GlassClaw (ClaudeClaw backend)
+        if UserDefaults.standard.object(forKey: "openClawEnabled") == nil {
+            return true
+        }
+        return UserDefaults.standard.bool(forKey: "openClawEnabled")
     }
 
     static func setOpenClawEnabled(_ enabled: Bool) {
@@ -1226,7 +1230,7 @@ struct Config {
            let mode = OpenClawConnectionMode(rawValue: raw) {
             return mode
         }
-        return .auto
+        return .lan
     }
 
     static func setOpenClawConnectionMode(_ mode: OpenClawConnectionMode) {
@@ -1237,7 +1241,7 @@ struct Config {
         if let host = UserDefaults.standard.string(forKey: "openClawLanHost"), !host.isEmpty {
             return host
         }
-        return "http://macbook.local"
+        return "http://192.168.1.85"
     }
 
     static func setOpenClawLanHost(_ host: String) {
@@ -1246,7 +1250,7 @@ struct Config {
 
     static var openClawPort: Int {
         let port = UserDefaults.standard.integer(forKey: "openClawPort")
-        return port != 0 ? port : 18789
+        return port != 0 ? port : 3141
     }
 
     static func setOpenClawPort(_ port: Int) {

@@ -33,14 +33,14 @@ struct AskOpenGlassesIntent: AppIntent {
         case appNotRunning
 
         var localizedStringResource: LocalizedStringResource {
-            "OpenGlasses is not running. Open the app first."
+            "GlassClaw is not running. Open the app first."
         }
     }
 }
 
 /// AppIntent to take a photo and analyze it.
 struct TakePhotoIntent: AppIntent {
-    static var title: LocalizedStringResource = "OpenGlasses Photo"
+    static var title: LocalizedStringResource = "GlassClaw Photo"
     static var description = IntentDescription("Take a photo with the glasses and describe what you see")
 
     static var isDiscoverable: Bool { true }
@@ -60,7 +60,7 @@ struct TakePhotoIntent: AppIntent {
         case appNotRunning
 
         var localizedStringResource: LocalizedStringResource {
-            "OpenGlasses is not running. Open the app first."
+            "GlassClaw is not running. Open the app first."
         }
     }
 }

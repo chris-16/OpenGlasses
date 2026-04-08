@@ -149,7 +149,7 @@ final class ProactiveAlertService: ObservableObject {
 
         // Also send a local notification in case the app is backgrounded
         let content = UNMutableNotificationContent()
-        content.title = "OpenGlasses"
+        content.title = "GlassClaw"
         content.body = message
         content.sound = .default
         content.interruptionLevel = .timeSensitive

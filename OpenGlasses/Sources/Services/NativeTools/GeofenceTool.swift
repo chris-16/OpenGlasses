@@ -255,7 +255,7 @@ final class GeofenceTool: NativeTool, @unchecked Sendable {
 
         // Send local notification as backup
         let content = UNMutableNotificationContent()
-        content.title = "OpenGlasses"
+        content.title = "GlassClaw"
         content.body = message
         content.sound = .default
         content.interruptionLevel = .timeSensitive
