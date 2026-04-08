@@ -49,7 +49,7 @@ class OpenClawBridge: ObservableObject {
     private let pingSession: URLSession
     private let lanPingSession: URLSession
     private var sessionKey: String
-    private var conversationHistory: [[String: String]] = []
+    private var conversationHistory: [[String: Any]] = []
     private let maxHistoryTurns = 10
 
     /// Cached resolved endpoint for the session
@@ -267,7 +267,7 @@ class OpenClawBridge: ObservableObject {
                 let bodyStr = String(data: data, encoding: .utf8) ?? "no body"
                 NSLog("[OpenClaw] Chat failed: HTTP %d - %@", code, String(bodyStr.prefix(200)))
                 // Remove the user message we just added since it failed
-                if conversationHistory.last?["role"] == "user" {
+                if conversationHistory.last?["role"] as? String == "user" {
                     conversationHistory.removeLast()
                 }
                 lastToolCallStatus = .failed(toolName, "HTTP \(code)")
@@ -293,7 +293,7 @@ class OpenClawBridge: ObservableObject {
         } catch {
             NSLog("[OpenClaw] Agent error: %@", error.localizedDescription)
             // Remove the user message we just added since it failed
-            if conversationHistory.last?["role"] == "user" {
+            if conversationHistory.last?["role"] as? String == "user" {
                 conversationHistory.removeLast()
             }
             lastToolCallStatus = .failed(toolName, error.localizedDescription)
