@@ -270,7 +270,7 @@ struct Config {
         if let phrase = UserDefaults.standard.string(forKey: "wakePhrase"), !phrase.isEmpty {
             return phrase.lowercased()
         }
-        return "hey openglasses"
+        return "hey vera"
     }
 
     static func setWakePhrase(_ phrase: String) {

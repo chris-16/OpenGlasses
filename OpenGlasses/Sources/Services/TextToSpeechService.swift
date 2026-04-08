@@ -306,12 +306,12 @@ class TextToSpeechService: NSObject, ObservableObject, AVSpeechSynthesizerDelega
     private func speakWithiOS(text: String) async {
         let utterance = AVSpeechUtterance(string: text)
         // Try to use a premium voice if available
-        if let premiumVoice = AVSpeechSynthesisVoice(identifier: "com.apple.voice.premium.en-US.Zoe") {
+        if let premiumVoice = AVSpeechSynthesisVoice(identifier: "com.apple.voice.premium.es-MX.Paulina") {
             utterance.voice = premiumVoice
-        } else if let enhancedVoice = AVSpeechSynthesisVoice(identifier: "com.apple.voice.enhanced.en-US.Zoe") {
+        } else if let enhancedVoice = AVSpeechSynthesisVoice(identifier: "com.apple.voice.enhanced.es-MX.Paulina") {
             utterance.voice = enhancedVoice
         } else {
-            utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
+            utterance.voice = AVSpeechSynthesisVoice(language: "es-CL")
         }
         utterance.rate = AVSpeechUtteranceDefaultSpeechRate
         utterance.pitchMultiplier = 1.0

@@ -28,7 +28,7 @@ class TranscriptionService: ObservableObject {
     weak var sharedAudioEngineProvider: WakeWordService?
 
     init() {
-        speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US"))
+        speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "es-CL"))
     }
 
     func startRecording() {
