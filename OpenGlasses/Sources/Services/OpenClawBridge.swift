@@ -203,31 +203,41 @@ class OpenClawBridge: ObservableObject {
     /// Used by both Direct Mode (via LLMService) and Gemini Live (via ToolCallRouter).
     func delegateTask(
         task: String,
-        toolName: String = "execute"
+        toolName: String = "execute",
+        imageData: Data? = nil
     ) async -> ToolResult {
         lastToolCallStatus = .executing(toolName)
 
         let endpoint = await resolveEndpoint()
-        let result = await performRequest(endpoint: endpoint, task: task, toolName: toolName)
+        let result = await performRequest(endpoint: endpoint, task: task, toolName: toolName, imageData: imageData)
 
         // If failed and in auto mode, retry with alternate endpoint
         if case .failure = result, let alt = alternateEndpoint() {
             NSLog("[OpenClaw] Retrying with alternate endpoint: %@", alt)
             cachedEndpoint = alt
             resolvedConnection = (alt == "\(Config.openClawLanHost):\(Config.openClawPort)") ? .lan : .tunnel
-            return await performRequest(endpoint: alt, task: task, toolName: toolName)
+            return await performRequest(endpoint: alt, task: task, toolName: toolName, imageData: imageData)
         }
 
         return result
     }
 
-    private func performRequest(endpoint: String, task: String, toolName: String) async -> ToolResult {
+    private func performRequest(endpoint: String, task: String, toolName: String, imageData: Data? = nil) async -> ToolResult {
         guard let url = URL(string: "\(endpoint)/v1/chat/completions") else {
             lastToolCallStatus = .failed(toolName, "Invalid URL")
             return .failure("Invalid gateway URL")
         }
 
-        conversationHistory.append(["role": "user", "content": task])
+        if let imageData = imageData {
+            let base64 = imageData.base64EncodedString()
+            let content: [[String: Any]] = [
+                ["type": "text", "text": task],
+                ["type": "image_url", "image_url": ["url": "data:image/jpeg;base64,\(base64)"]]
+            ]
+            conversationHistory.append(["role": "user", "content": content])
+        } else {
+            conversationHistory.append(["role": "user", "content": task])
+        }
 
         if conversationHistory.count > maxHistoryTurns * 2 {
             conversationHistory = Array(conversationHistory.suffix(maxHistoryTurns * 2))

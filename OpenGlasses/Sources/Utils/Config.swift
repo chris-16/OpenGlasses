@@ -328,7 +328,7 @@ struct Config {
     static let claudeModel = "claude-sonnet-4-20250514"
 
     /// Max tokens for LLM response
-    static let maxTokens = 500
+    static let maxTokens = 250
 
     // MARK: - OpenAI-compatible
 
@@ -996,7 +996,7 @@ struct Config {
                     modelId: "", presetId: "preset-reading-assistant", enabled: true,
                     icon: "text.viewfinder", isBuiltIn: true),
             Persona(id: "mode-accessibility", name: "Accessibility Assistant", wakePhrase: "hey eyes",
-                    alternativeWakePhrases: ["accessibility mode", "hey assistant"],
+                    alternativeWakePhrases: ["accessibility mode"],
                     modelId: "", presetId: "preset-accessibility", enabled: true,
                     icon: "figure.walk", isBuiltIn: true),
             Persona(id: "mode-travel-guide", name: "Travel Guide", wakePhrase: "hey travel",
@@ -1063,22 +1063,37 @@ struct Config {
 
     static var savedPersonas: [Persona] {
         if let data = UserDefaults.standard.data(forKey: "savedPersonas"),
-           let personas = try? JSONDecoder().decode([Persona].self, from: data),
+           var personas = try? JSONDecoder().decode([Persona].self, from: data),
            !personas.isEmpty {
+            // Migration: remove stale "hey assistant" from alternatives and ensure "hey vera" persona exists
+            if !UserDefaults.standard.bool(forKey: "migratedToVera") {
+                personas = personas.map { var p = $0; p.alternativeWakePhrases.removeAll { $0 == "hey assistant" }; return p }
+                if !personas.contains(where: { $0.wakePhrase == "hey vera" || $0.alternativeWakePhrases.contains("hey vera") }) {
+                    var vera = Persona(id: "vera-main", name: "Vera", wakePhrase: "hey vera",
+                                       alternativeWakePhrases: ["oye vera", "hola vera"],
+                                       modelId: activeModelId, presetId: activePresetId, enabled: true)
+                    vera.icon = "eyeglasses"
+                    personas.insert(vera, at: 0)
+                }
+                setSavedPersonas(personas)
+                UserDefaults.standard.set(true, forKey: "migratedToVera")
+            }
             return personas
         }
-        // Migration: create a persona from current config
-        let migrated = Persona(
-            id: UUID().uuidString,
-            name: "GlassClaw",
-            wakePhrase: wakePhrase,
-            alternativeWakePhrases: alternativeWakePhrases,
+        // First launch: create Vera persona
+        let vera = Persona(
+            id: "vera-main",
+            name: "Vera",
+            wakePhrase: "hey vera",
+            alternativeWakePhrases: ["oye vera", "hola vera"],
             modelId: activeModelId,
             presetId: activePresetId,
-            enabled: true
+            enabled: true,
+            icon: "eyeglasses"
         )
-        let personas = [migrated]
+        let personas = [vera]
         setSavedPersonas(personas)
+        UserDefaults.standard.set(true, forKey: "migratedToVera")
         return personas
     }
 
