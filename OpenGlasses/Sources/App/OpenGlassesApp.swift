@@ -182,9 +182,15 @@ struct OpenGlassesApp: App {
         .onChange(of: scenePhase) { _, newPhase in
             switch newPhase {
             case .background:
-                print("📱 App moved to background — keeping audio alive")
                 appState.liveActivityManager.end()
-                appState.optimizeForBackground()
+                if appState.isConnected {
+                    print("📱 App moved to background — keeping audio alive (glasses connected)")
+                    appState.optimizeForBackground()
+                } else {
+                    print("📱 App moved to background — stopping mic (no glasses)")
+                    appState.wakeWordService.stopListening()
+                    Task { await appState.cameraService.stopStreaming() }
+                }
             case .active:
                 print("📱 App became active")
                 appState.restoreFromBackground()
