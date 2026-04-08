@@ -232,7 +232,11 @@ class OpenClawBridge: ObservableObject {
             let base64 = imageData.base64EncodedString()
             let content: [[String: Any]] = [
                 ["type": "text", "text": task],
-                ["type": "image_url", "image_url": ["url": "data:image/jpeg;base64,\(base64)"]]
+                ["type": "image", "source": [
+                    "type": "base64",
+                    "media_type": "image/jpeg",
+                    "data": base64
+                ]]
             ]
             conversationHistory.append(["role": "user", "content": content])
         } else {

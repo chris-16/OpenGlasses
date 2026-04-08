@@ -533,21 +533,29 @@ class LLMService: ObservableObject {
         // OpenAI-compatible endpoints vary a lot, so this is driven by the saved model config
         // with a heuristic fallback in `ModelConfig.visionEnabled`.
         let supportsVision = config.visionEnabled
-        
+        // Use Anthropic image format for custom endpoints that proxy to Claude
+        let useAnthropicImageFormat = provider == .custom && config.model.lowercased().contains("claude")
+
         if let imageData = imageData, supportsVision {
             let base64String = imageData.base64EncodedString()
-            let content: [[String: Any]] = [
-                [
-                    "type": "text",
-                    "text": text
-                ],
-                [
-                    "type": "image_url",
-                    "image_url": [
-                        "url": "data:image/jpeg;base64,\(base64String)"
-                    ]
+            let content: [[String: Any]]
+            if useAnthropicImageFormat {
+                content = [
+                    ["type": "text", "text": text],
+                    ["type": "image", "source": [
+                        "type": "base64",
+                        "media_type": "image/jpeg",
+                        "data": base64String
+                    ]]
                 ]
-            ]
+            } else {
+                content = [
+                    ["type": "text", "text": text],
+                    ["type": "image_url", "image_url": [
+                        "url": "data:image/jpeg;base64,\(base64String)"
+                    ]]
+                ]
+            }
             conversationHistory.append(["role": "user", "content": content])
         } else if imageData != nil && !supportsVision {
             print("🖼️ Skipping image for model \(config.model) — vision disabled for this model configuration")
